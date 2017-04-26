@@ -1,15 +1,43 @@
-using Microsoft.AspNetCore.Mvc;
 using System;
+using System.IO;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Formatters;
 
 namespace MapAPI.Controllers
 {
     [Route("api/[controller]")]
     public class MapController : Controller
     {
+        private readonly IHostingEnvironment _environment;
+
+        public MapController(IHostingEnvironment environment)
+        {
+            _environment = environment;
+        }
+
         [HttpGet("{id}", Name = "GetMap")]
         public IActionResult GetById(int id)
         {
-            throw new NotImplementedException();
+            string uploads = Path.Combine(_environment.ContentRootPath, "Maps");
+
+            try
+            {
+                string jsonFile = System.IO.File.ReadAllText(Path.Combine(uploads, id + ".json"));
+                return new ObjectResult(jsonFile)
+                {
+                    ContentTypes = new MediaTypeCollection
+                    {
+                        "application/json",
+                        "charset=utf-8"
+                    }
+                };
+            }
+            catch
+            {
+                NotFoundResult o = new NotFoundResult();
+                return o;
+            }
         }
 
         [HttpPost]
