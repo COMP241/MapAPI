@@ -288,4 +288,6 @@ __pycache__/
 *.xsd.cs
 
 #Custom
+uploadtoserver.sh
 MapAPI/Maps
+MapAPI/compilemoveandrun.sh
