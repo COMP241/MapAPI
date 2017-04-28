@@ -110,9 +110,9 @@ static void drawSquares(Mat& image, const vector<vector<Point> >& rectangles)
 int main(int argc, char** argv)
 {
 	const char* usage = "usage: IdentifyRectangles [options] <image>...\n\n-w, --windows\tDisplays windows.";
-	if (argc < 1) // Checks there is at least 1 arg
+	if (argc < 2) // Checks there is at least 1 arg
 	{
-		cout << usage;
+		cout << usage << endl;
 		return 0;
 	}
 
@@ -120,9 +120,9 @@ int main(int argc, char** argv)
 	if (strcmp(argv[1], "-w") == 0 || strcmp(argv[1], "--windows") == 0) // Checks if windows should be displayed
 	{
 		displayWindows = true;
-		if (argc < 2) // Checks there is at least one other arg
+		if (argc < 3) // Checks there is at least one other arg
 		{
-			cout << usage;
+			cout << usage << endl;
 			return 0;
 		}
 	}
@@ -135,7 +135,7 @@ int main(int argc, char** argv)
 	if (displayWindows)
 		offset++;
 
-	for (int i = 0; i < 10; i++) // Gets array of images (max 10)
+	for (int i = 0; i < argc - offset; i++) // Gets array of images (max 10)
 	{
 		names[i] = argv[i + offset];
 	}
@@ -178,6 +178,6 @@ int main(int argc, char** argv)
 
 		cout << "]";
 	}
-
+	cout << endl;
 	return 0;
 }
