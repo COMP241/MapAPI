@@ -291,3 +291,4 @@ __pycache__/
 uploadtoserver.sh
 MapAPI/Maps
 MapAPI/compilemoveandrun.sh
+OpenCV
