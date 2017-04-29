@@ -1,11 +1,13 @@
 using System;
 using System.IO;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
 
 namespace MapAPI.Controllers
 {
+    [EnableCors("AllowSpecificOrigin")]
     [Route("api/[controller]")]
     public class MapController : Controller
     {
@@ -43,7 +45,7 @@ namespace MapAPI.Controllers
         [HttpPost]
         public IActionResult Create()
         {
-            throw new NotImplementedException();
+            return new ObjectResult("You did it!!!");
         }
     }
 }
