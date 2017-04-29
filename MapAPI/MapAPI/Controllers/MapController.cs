@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
@@ -7,7 +6,7 @@ using Microsoft.AspNetCore.Mvc.Formatters;
 
 namespace MapAPI.Controllers
 {
-    [EnableCors("AllowSpecificOrigin")]
+    [EnableCors("AllowAllOrigins")]
     [Route("api/[controller]")]
     public class MapController : Controller
     {

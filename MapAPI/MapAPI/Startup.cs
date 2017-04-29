@@ -40,7 +40,7 @@ namespace MapAPI
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
 
-            app.UseCors("AllowSpecificOrigin");
+            app.UseCors("AllowAllOrigins");
 
             app.UseMvc();
         }
