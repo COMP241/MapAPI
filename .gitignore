@@ -293,7 +293,7 @@ compilemoveandrun.sh
 
 # Test Data Folders
 OpenCVComponents/Images
-MapAPI/Maps
+MapAPI/MapAPI/Maps
 
 # Libraries
 OpenCV
