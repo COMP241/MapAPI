@@ -20,7 +20,7 @@
 
   <ItemGroup>
     <Folder Include="Images\">
-      <CopyToOutputDirectory></CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Folder>
   </ItemGroup>
 
