@@ -129,7 +129,7 @@ int main(int argc, char** argv)
 	else
 		displayWindows = false;
 
-	static const char* names[10];
+	const char* names[10];
 
 	int offset = 1; // Gets number of non image parameters
 	if (displayWindows)
@@ -138,6 +138,7 @@ int main(int argc, char** argv)
 	for (int i = 0; i < argc - offset; i++) // Gets array of images (max 10)
 	{
 		names[i] = argv[i + offset];
+		names[i + 1] = 0; //Keeps the next one always at 0S
 	}
 
 	if (displayWindows)
@@ -177,6 +178,13 @@ int main(int argc, char** argv)
 		}
 
 		cout << "]";
+		
+		if (displayWindows)
+		{
+			char c = (char)waitKey();
+			if (c == 27)
+				break;
+		}
 	}
 	cout << endl;
 	return 0;
