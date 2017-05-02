@@ -24,8 +24,10 @@ static double angle(Point pt1, Point pt2, Point pt0)
 	return (dx1 * dx2 + dy1 * dy2) / sqrt((dx1 * dx1 + dy1 * dy1) * (dx2 * dx2 + dy2 * dy2) + 1e-10);
 }
 
-// Returns sequence of squares detected on the image.
-// The sequence is stored in the specified memory storage
+// Returns sequence of rectangles detected on the image.
+// The sequence is stored in the specified memory storage.
+// Based on the code by karlphillip, http://stackoverflow.com/a/8863060
+// under the CC BY-SA license, https://creativecommons.org/licenses/by-sa/4.0/.
 void findRectangles(Mat& image, vector<vector<Point> >& rectangles)
 {
 	// Blur will enhance edge detection
@@ -138,7 +140,7 @@ int main(int argc, char** argv)
 	for (int i = 0; i < argc - offset; i++) // Gets array of images (max 10)
 	{
 		names[i] = argv[i + offset];
-		names[i + 1] = 0; //Keeps the next one always at 0S
+		names[i + 1] = 0; //Keeps the next one always at 0
 	}
 
 	if (displayWindows)

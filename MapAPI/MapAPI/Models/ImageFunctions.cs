@@ -67,7 +67,9 @@ namespace MapAPI.Models
         }
 
         /// <summary>
-        ///     Skews the image to create a new image where the four input points are the new corners
+        ///     Skews the image to create a new image where the four input points are the new corners.
+        ///     Based on the code by mauf, http://stackoverflow.com/a/5730469
+        ///     under the CC BY-SA license, https://creativecommons.org/licenses/by-sa/4.0/.
         /// </summary>
         /// <param name="image">Image to transform.</param>
         /// <param name="points">The four points (in any clockwise or anticlockwise order) to become the four corners.</param>
