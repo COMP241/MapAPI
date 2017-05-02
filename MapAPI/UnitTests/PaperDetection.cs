@@ -143,11 +143,11 @@ namespace UnitTests
             {
                 Id = 0,
                 Ratio = 1.414,
-                Lines = new List<Line>()
+                Lines = new List<Line>
                 {
                     new Line
                     {
-                        Color = "red",
+                        Color = Line.Colors.Red,
                         Loop = false,
                         Points = new List<PointF>
                         {
@@ -158,7 +158,7 @@ namespace UnitTests
                     },
                     new Line
                     {
-                        Color = "green",
+                        Color = Line.Colors.Green,
                         Loop = true,
                         Points = new List<PointF>
                         {
@@ -169,13 +169,16 @@ namespace UnitTests
                     }
                 }
             };
-
+            
             string json = JsonConvert.SerializeObject(map);
             json = json.Replace("\"IsEmpty\":false,", "");
 
             if (!Directory.Exists("Maps"))
                 Directory.CreateDirectory("Maps");
             File.WriteAllText("Maps/0.json", json);
+
+            Map test = JsonConvert.DeserializeObject<Map>(File.ReadAllText("Maps/0.json"));
+            Assert.IsNotNull(test);
         }
     }
 }
