@@ -287,8 +287,13 @@ __pycache__/
 *.odx.cs
 *.xsd.cs
 
-#Custom
+# sh Files
 uploadtoserver.sh
-MapAPI/Maps
-MapAPI/MapAPI/compilemoveandrun.sh
+compilemoveandrun.sh
+
+# Test Data Folders
+OpenCVComponents/Images
+MapAPI/MapAPI/Maps
+
+# Libraries
 OpenCV

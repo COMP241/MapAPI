@@ -24,9 +24,11 @@ namespace MapAPI.Controllers
 
             try
             {
+                //Gets file based on id
                 string jsonFile = System.IO.File.ReadAllText(Path.Combine(uploads, id + ".json"));
                 return new ObjectResult(jsonFile)
                 {
+                    //Sets the media type to be json instead of string
                     ContentTypes = new MediaTypeCollection
                     {
                         "application/json",
@@ -36,7 +38,7 @@ namespace MapAPI.Controllers
             }
             catch
             {
-                NotFoundResult o = new NotFoundResult();
+                NotFoundResult o = new NotFoundResult(); //404 if file isn't found
                 return o;
             }
         }
