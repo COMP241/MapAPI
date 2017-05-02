@@ -144,11 +144,11 @@ int main(int argc, char** argv)
 	if (displayWindows)
 		namedWindow(wndname , 1);
 
-	vector<vector<Point> > rectangles;
-
 	for (int i = 0; names[i] != 0; i++)
 	{
 		cout << endl; // Creates new line for this squares output
+
+		vector<vector<Point> > rectangles;
 
 		Mat image = imread(names[i], 1);
 		if (image.empty())
