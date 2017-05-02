@@ -5,7 +5,9 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using MapAPI.Helpers;
+using MapAPI.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
 
 namespace UnitTests
 {
@@ -71,7 +73,8 @@ namespace UnitTests
                 foreach (Point corner in paper)
                     for (int xOff = -2; xOff < 3; xOff++)
                     for (int yOff = -2; yOff < 3; yOff++)
-                        if (corner.X + xOff < tempBitmap.Width && corner.Y + yOff < tempBitmap.Height && corner.X + xOff >= 0 &&
+                        if (corner.X + xOff < tempBitmap.Width && corner.Y + yOff < tempBitmap.Height &&
+                            corner.X + xOff >= 0 &&
                             corner.Y + yOff >= 0)
                             tempBitmap.SetPixel(corner.X + xOff, corner.Y + yOff, Color.Red);
 
@@ -131,6 +134,48 @@ namespace UnitTests
                     CollectionAssert.AreEqual(testPoints, testOrder);
                 }
             }
+        }
+
+        [TestMethod]
+        public void JsonExample()
+        {
+            Map map = new Map
+            {
+                Id = 0,
+                Ratio = 1.414,
+                Lines = new List<Line>()
+                {
+                    new Line
+                    {
+                        Color = "red",
+                        Loop = false,
+                        Points = new List<PointF>
+                        {
+                            new PointF(0.1F, 0.1F),
+                            new PointF(0.2F, 0.05F),
+                            new PointF(0.4F, 0.25F)
+                        }
+                    },
+                    new Line
+                    {
+                        Color = "green",
+                        Loop = true,
+                        Points = new List<PointF>
+                        {
+                            new PointF(0.5F, 0.5F),
+                            new PointF(0.7F, 0.35F),
+                            new PointF(0.7F, 0.8F)
+                        }
+                    }
+                }
+            };
+
+            string json = JsonConvert.SerializeObject(map);
+            json = json.Replace("\"IsEmpty\":false,", "");
+
+            if (!Directory.Exists("Maps"))
+                Directory.CreateDirectory("Maps");
+            File.WriteAllText("Maps/0.json", json);
         }
     }
 }
