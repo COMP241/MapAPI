@@ -4,7 +4,6 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using MapAPI.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -16,7 +15,7 @@ namespace UnitTests
         private readonly string[] _images = {"img1", "img2"};
 
         [TestMethod]
-        public void GetCPlusPlusOutput()
+        public void GetCPlusPlusOutputTest()
         {
             Process proc = new Process
             {
@@ -42,40 +41,85 @@ namespace UnitTests
         }
 
         [TestMethod]
-        public void JsonConvertObject()
+        public void GetPaperFromImageTest()
         {
             foreach (string image in _images)
             {
+                //Gets rectangles
                 Point[][] rectangles = OpenCVWrapper.IdentifyRectangles($"Images//{image}.jpg");
                 //Checks valid json was output
                 Assert.IsNotNull(rectangles);
                 //Checks at least 1 rectangle was identifed
                 Assert.AreNotEqual(rectangles.Length, 0);
-            }
-        }
 
-        [TestMethod]
-        public void CornerIdentification()
-        {
-            foreach (string image in _images)
-            {
                 Bitmap bitmap = new Bitmap($"Images//{image}.jpg");
-
-                //Get rectangles
-                Point[][] rectangles = OpenCVWrapper.IdentifyRectangles($"Images//{image}.jpg");
-                //Get paper
+                //Get rectangle that corresponds to the paper (I hope) 
                 Point[] paper = ImageFunctions.IdentifyPaperCorners(bitmap, rectangles);
 
                 //Draws all points on the image for manual checking
+                Bitmap tempBitmap = new Bitmap(bitmap);
                 foreach (Point corner in paper)
                     for (int xoff = -2; xoff < 3; xoff++)
                     for (int yoff = -2; yoff < 3; yoff++)
-                        bitmap.SetPixel(corner.X + xoff, corner.Y + yoff, Color.Red);
+                        if (corner.X + xoff < tempBitmap.Width && corner.Y + yoff < tempBitmap.Height && corner.X + xoff >= 0 &&
+                            corner.Y + yoff >= 0)
+                            tempBitmap.SetPixel(corner.X + xoff, corner.Y + yoff, Color.Red);
 
                 //Save modified image
                 if (!Directory.Exists("Images//Out"))
                     Directory.CreateDirectory("Images//Out");
-                bitmap.Save($"Images//Out//{image} - corners.png", ImageFormat.Png);
+                tempBitmap.Save($"Images//Out//{image} - corners.png", ImageFormat.Png);
+
+                //Transforms and saves image for manual checking
+                bitmap = ImageFunctions.PerspectiveTransformImage(bitmap, paper, 1414, 1000);
+                bitmap.Save($"Images//Out//{image} - transform.png", ImageFormat.Png);
+            }
+        }
+
+        [TestMethod]
+        public void OrderClockwiseTest()
+        {
+            //Prefect rectangle
+            TryAllOrders(new[] {new Point(100, 100), new Point(200, 100), new Point(200, 200), new Point(100, 200)});
+
+            //Rotated Rectangle
+            TryAllOrders(new[] {new Point(100, 100), new Point(300, 50), new Point(350, 150), new Point(150, 200)});
+
+            //Warped Rectangle
+            TryAllOrders(new[] {new Point(125, 100), new Point(300, 50), new Point(275, 150), new Point(150, 200)});
+
+            //Extra Test
+            TryAllOrders(new[] {new Point(50, 100), new Point(300, 50), new Point(300, 150), new Point(170, 200)});
+
+            void TryAllOrders(Point[] testPoints)
+            {
+                //Shifts points along
+                for (int i = 0; i < 4; i++)
+                {
+                    Point[] testOrder =
+                    {
+                        testPoints[0 + i],
+                        testPoints[1 + i - (i > 2 ? 4 : 0)],
+                        testPoints[2 + i - (i > 1 ? 4 : 0)],
+                        testPoints[3 + i - (i > 0 ? 4 : 0)]
+                    };
+                    testOrder.OrderClockwise();
+                    CollectionAssert.AreEqual(testPoints, testOrder);
+                }
+
+                //Reverse order and shifts points along
+                for (int i = 0; i < 4; i++)
+                {
+                    Point[] testOrder =
+                    {
+                        testPoints[3 + i - (i > 0 ? 4 : 0)],
+                        testPoints[2 + i - (i > 1 ? 4 : 0)],
+                        testPoints[1 + i - (i > 2 ? 4 : 0)],
+                        testPoints[0 + i]
+                    };
+                    testOrder.OrderClockwise();
+                    CollectionAssert.AreEqual(testPoints, testOrder);
+                }
             }
         }
     }
