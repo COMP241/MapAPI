@@ -49,7 +49,20 @@ namespace MapAPI.Models
             //Checks if pixel is "white" i.e. Saturation < 30 and Brightness > 50
             bool IsWhite(Color pixel)
             {
-                return pixel.GetSaturation() < 0.3 && pixel.GetBrightness() > 0.5;
+                return GetSaturation(pixel) < 0.3 && GetBrightness(pixel) > 0.5;
+
+                double GetBrightness(Color color)
+                {
+                    return Math.Max(color.R, Math.Max(color.G, color.B)) / 255d;
+                }
+
+                double GetSaturation(Color color)
+                {
+                    int max = Math.Max(color.R, Math.Max(color.G, color.B));
+                    int min = Math.Min(color.R, Math.Min(color.G, color.B));
+
+                    return max == 0 ? 0 : 1d - 1d * min / max;
+                }
             }
         }
 
@@ -180,7 +193,7 @@ namespace MapAPI.Models
 
                 //Based on angle decides which is the top right corner, this is approximate and 
                 //requires the image to already be fairly upright and not on too much of an angle
-                if (Math.Abs(angle) < Math.PI / 2)
+                if (Math.Abs(leftMostCorner.Y - topMostCorner.Y) < Math.Abs(leftMostCorner.X - topMostCorner.X))
                 {
                     topLeftCorner = leftMostCorner;
                     topRightCorner = topMostCorner;

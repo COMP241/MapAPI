@@ -38,7 +38,8 @@ namespace MapAPI.Controllers
             }
             catch
             {
-                NotFoundResult o = new NotFoundResult(); //404 if file isn't found
+                //404 if file isn't found
+                NotFoundResult o = new NotFoundResult();
                 return o;
             }
         }
