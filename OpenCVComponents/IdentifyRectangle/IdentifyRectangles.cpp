@@ -131,13 +131,14 @@ int main(int argc, char** argv)
 	else
 		displayWindows = false;
 
-	const char* names[10];
+	const char* names[11];
 
 	int offset = 1; // Gets number of non image parameters
 	if (displayWindows)
 		offset++;
 
-	for (int i = 0; i < argc - offset; i++) // Gets array of images (max 10)
+	int count = argc - offset < 10 ? argc - offset : 10; // Limits count to 10
+	for (int i = 0; i < count; i++) // Gets array of images (max 10)
 	{
 		names[i] = argv[i + offset];
 		names[i + 1] = 0; //Keeps the next one always at 0
