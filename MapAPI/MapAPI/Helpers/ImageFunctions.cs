@@ -2,7 +2,7 @@
 using System.Drawing;
 using System.Linq;
 
-namespace MapAPI.Models
+namespace MapAPI.Helpers
 {
     public static class ImageFunctions
     {

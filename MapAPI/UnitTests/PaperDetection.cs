@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
-using MapAPI.Models;
+using MapAPI.Helpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace UnitTests

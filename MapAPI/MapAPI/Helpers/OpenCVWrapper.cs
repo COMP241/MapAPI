@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 
-namespace MapAPI.Models
+namespace MapAPI.Helpers
 {
     public static class OpenCVWrapper
     {
