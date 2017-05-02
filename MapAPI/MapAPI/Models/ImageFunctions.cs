@@ -7,7 +7,7 @@ namespace MapAPI.Models
     public static class ImageFunctions
     {
         /// <summary>
-        ///     Trys to identifies the paper from a set of rectangles.
+        ///     Tries to identifies the paper from a set of rectangles.
         /// </summary>
         /// <param name="image">Image to identify paper in.</param>
         /// <param name="rectangles">Rectangles in the image.</param>
@@ -28,7 +28,7 @@ namespace MapAPI.Models
             //Returns null if no rectangles worked
             return null;
 
-            //Returns the appoximate area of the rectagle
+            //Returns the approximate area of the rectangle
             int ApproximateAreaOfRectangle(Point[] rectangle)
             {
                 //Length of one side with pythagoras
@@ -76,14 +76,14 @@ namespace MapAPI.Models
             for (int y = 0; y < height; y++)
             {
                 //Relative position
-                double realativeX = (double) x / width;
+                double relativeX = (double) x / width;
                 double relativeY = (double) y / height;
 
                 //Get top and bottom position
-                double topX = topLeft.X + realativeX * (topRight.X - topLeft.X);
-                double topY = topLeft.Y + realativeX * (topRight.Y - topLeft.Y);
-                double bottomX = bottomLeft.X + realativeX * (bottomRight.X - bottomLeft.X);
-                double bottomY = bottomLeft.Y + realativeX * (bottomRight.Y - bottomLeft.Y);
+                double topX = topLeft.X + relativeX * (topRight.X - topLeft.X);
+                double topY = topLeft.Y + relativeX * (topRight.Y - topLeft.Y);
+                double bottomX = bottomLeft.X + relativeX * (bottomRight.X - bottomLeft.X);
+                double bottomY = bottomLeft.Y + relativeX * (bottomRight.Y - bottomLeft.Y);
 
                 //Select center between top and bottom point
                 double centerX = topX + relativeY * (bottomX - topX);
@@ -140,7 +140,7 @@ namespace MapAPI.Models
         /// <summary>
         ///     Orders the points in a clockwise direction from top left.
         /// </summary>
-        /// <param name="corners">Array of 4 points to order, must already be in clocwise or anticlockwise order.</param>
+        /// <param name="corners">Array of 4 points to order, must already be in clockwise or anticlockwise order.</param>
         public static void OrderClockwise(this Point[] corners)
         {
             //Checks that there are 4 points
@@ -154,7 +154,7 @@ namespace MapAPI.Models
                 ? leftMostCorners[0]
                 : leftMostCorners.OrderBy(corner => corner.Y).First();
 
-            //Gets top most corner (if multiple corners are the same hight, gets the left most one)
+            //Gets top most corner (if multiple corners are the same height, gets the left most one)
             int topMostYValue = corners.Min(corner => corner.Y);
             Point[] topMostCorners = corners.Where(corner => corner.Y == topMostYValue).ToArray();
             Point topMostCorner = topMostCorners.Length == 1

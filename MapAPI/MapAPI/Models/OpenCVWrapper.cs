@@ -10,7 +10,7 @@ namespace MapAPI.Models
     public static class OpenCVWrapper
     {
         /// <summary>
-        ///     Identifies all posible rectangles in an image.
+        ///     Identifies all possible rectangles in an image.
         /// </summary>
         /// <param name="image">Image to detect rectangles in.</param>
         /// <param name="debugWindows">Show image with all identified rectangles drawn on it.</param>
@@ -18,7 +18,7 @@ namespace MapAPI.Models
         public static Point[][] IdentifyRectangles(string image, bool debugWindows = false)
         {
             //Starts the identify rectangle process
-            Process proc = new Process
+            Process process = new Process
             {
                 StartInfo = new ProcessStartInfo
                 {
@@ -30,16 +30,16 @@ namespace MapAPI.Models
                     WorkingDirectory = Directory.GetCurrentDirectory()
                 }
             };
-            proc.Start();
+            process.Start();
 
             //Read all the lines
             List<string> lines = new List<string>();
-            while (!proc.StandardOutput.EndOfStream)
-                lines.Add(proc.StandardOutput.ReadLine());
+            while (!process.StandardOutput.EndOfStream)
+                lines.Add(process.StandardOutput.ReadLine());
 
             try
             {
-                //Trys to convert the last line from json
+                //Tries to convert the last line from json
                 return JsonConvert.DeserializeObject<Point[][]>(lines.Last());
             }
             catch (JsonReaderException)
