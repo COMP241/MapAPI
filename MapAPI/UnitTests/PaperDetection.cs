@@ -17,12 +17,19 @@ namespace UnitTests
         private readonly string[] _images =
         {
             "img1",
-            "img2",
+            //"img2",
             "img3",
-            //"img4",
-            //"img5",
+            "img4",
+            "img5",
             "img6",
-            "img7"
+            "img7",
+            "img1L",
+            //"img2L",
+            //"img3L",
+            //"img4L",
+            "img5L",
+            "img6L",
+            "img7L"
         };
 
         [TestMethod]
@@ -47,7 +54,7 @@ namespace UnitTests
                 lines.Add(process.StandardOutput.ReadLine());
             //Checks against command line output
             Assert.AreEqual(
-                "[[{\"x\":595,\"y\":164},{\"x\":573,\"y\":208},{\"x\":605,\"y\":226},{\"x\":634,\"y\":180}],[{\"x\":336,\"y\":276},{\"x\":289,\"y\":355},{\"x\":367,\"y\":387},{\"x\":424,\"y\":304}],[{\"x\":600,\"y\":171},{\"x\":626,\"y\":184},{\"x\":604,\"y\":218},{\"x\":580,\"y\":205}],[{\"x\":596,\"y\":164},{\"x\":573,\"y\":207},{\"x\":605,\"y\":226},{\"x\":634,\"y\":180}],[{\"x\":232,\"y\":101},{\"x\":855,\"y\":102},{\"x\":871,\"y\":547},{\"x\":228,\"y\":556}],[{\"x\":336,\"y\":276},{\"x\":289,\"y\":357},{\"x\":367,\"y\":388},{\"x\":425,\"y\":306}],[{\"x\":599,\"y\":172},{\"x\":626,\"y\":184},{\"x\":605,\"y\":216},{\"x\":581,\"y\":204}],[{\"x\":595,\"y\":164},{\"x\":572,\"y\":206},{\"x\":605,\"y\":226},{\"x\":634,\"y\":180}],[{\"x\":232,\"y\":101},{\"x\":854,\"y\":101},{\"x\":871,\"y\":547},{\"x\":229,\"y\":557}]]",
+                "[[{\"x\":732,\"y\":191},{\"x\":1171,\"y\":480},{\"x\":884,\"y\":779},{\"x\":442,\"y\":400}],[{\"x\":734,\"y\":190},{\"x\":1171,\"y\":480},{\"x\":884,\"y\":779},{\"x\":442,\"y\":400}],[{\"x\":734,\"y\":190},{\"x\":1171,\"y\":480},{\"x\":884,\"y\":779},{\"x\":442,\"y\":400}]]",
                 lines.Last());
         }
 
@@ -101,8 +108,8 @@ namespace UnitTests
             //Warped Rectangle
             TryAllOrders(new[] {new Point(125, 100), new Point(300, 50), new Point(275, 150), new Point(150, 200)});
 
-            //Extra Test
-            TryAllOrders(new[] {new Point(232, 101), new Point(855, 102), new Point(871, 547), new Point(228, 556)});
+            //Difficult case
+            TryAllOrders(new[] {new Point(100, 100), new Point(200, 90), new Point(200, 200), new Point(90, 200) });
 
             void TryAllOrders(Point[] testPoints)
             {
@@ -137,7 +144,7 @@ namespace UnitTests
         }
 
         [TestMethod]
-        public void JsonExample()
+        public void JsonConversionTest()
         {
             Map map = new Map
             {
