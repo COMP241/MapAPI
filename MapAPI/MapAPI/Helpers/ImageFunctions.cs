@@ -162,76 +162,73 @@ namespace MapAPI.Helpers
             if (corners.Length != 4)
                 throw new ArgumentException("The number of corners is not 4", nameof(corners));
 
-            //Gets left most corner (if multiple corners are the same amount to the left, gets the higher one)
-            int leftMostXValue = corners.Min(corner => corner.X);
-            Point[] leftMostCorners = corners.Where(corner => corner.X == leftMostXValue).ToArray();
-            Point leftMostCorner = leftMostCorners.Length == 1
-                ? leftMostCorners[0]
-                : leftMostCorners.OrderBy(corner => corner.Y).First();
+            //Finds the top left corner based on the corner where the sum of its X and Y is the lowest
+            Point topLeftCorner =
+                corners.First(corner => corner.X + corner.Y == corners.Min(corner2 => corner2.X + corner2.Y));
+            int topLeftCornerIndex = Array.IndexOf(corners, topLeftCorner);
 
-            //Gets top most corner (if multiple corners are the same height, gets the left most one)
-            int topMostYValue = corners.Min(corner => corner.Y);
-            Point[] topMostCorners = corners.Where(corner => corner.Y == topMostYValue).ToArray();
-            Point topMostCorner = topMostCorners.Length == 1
-                ? topMostCorners[0]
-                : topMostCorners.OrderBy(corner => corner.X).First();
-
-            Point topLeftCorner, topRightCorner;
-            int topLeftCornerIndex, topRightCornerIndex;
-
-            //The top left corner must be 90 degrees with a horizontal and vertical line
-            if (leftMostCorner.Equals(topMostCorner))
-            {
-                topLeftCorner = leftMostCorner;
-                topRightCorner = topMostCorners.First(corner => corner.X != topLeftCorner.X);
-                topLeftCornerIndex = Array.IndexOf(corners, topLeftCorner);
-                topRightCornerIndex = Array.IndexOf(corners, topRightCorner);
-            }
-            else
-            {
-                //Finds angle between left most and top most corner
-                double angle = Math.Atan((double) (topMostCorner.Y - leftMostCorner.Y) /
-                                         (topMostCorner.X - leftMostCorner.X));
-
-                //Based on angle decides which is the top right corner, this is approximate and 
-                //requires the image to already be fairly upright and not on too much of an angle
-                if (Math.Abs(leftMostCorner.Y - topMostCorner.Y) < Math.Abs(leftMostCorner.X - topMostCorner.X))
-                {
-                    topLeftCorner = leftMostCorner;
-                    topRightCorner = topMostCorner;
-                    topLeftCornerIndex = Array.IndexOf(corners, topLeftCorner);
-                    topRightCornerIndex = Array.IndexOf(corners, topRightCorner);
-                }
-                else
-                {
-                    topLeftCorner = topMostCorner;
-                    topLeftCornerIndex = Array.IndexOf(corners, topLeftCorner);
-
-                    int bottomLeftIndex = Array.IndexOf(corners, leftMostCorner);
-                    //Top right corner is opposite bottom left
-                    topRightCornerIndex = bottomLeftIndex + 2;
-                    //Subtracts 4 if the index is above 3
-                    topRightCornerIndex -= topRightCornerIndex > 3 ? 4 : 0;
-                }
-            }
+            //The top right corner must be the corner that has the greater angle relative to the top left corner
+            Point[] adjacentPoints = {corners.GetValueOverflow(topLeftCornerIndex - 1), corners.GetValueOverflow(topLeftCornerIndex + 1)};
+            double[] relativeAngles = adjacentPoints.Select(corner => RelativeAngle(topLeftCorner, corner)).ToArray();
+            int greaterRelativeAngleIndex = Array.IndexOf(relativeAngles, relativeAngles.Max());
+            Point topRightCorner = adjacentPoints[greaterRelativeAngleIndex];
+            int topRightCornerIndex = Array.IndexOf(corners, topRightCorner);
 
             //Order the points in here before moving it to original array
             Point[] tempOrder = new Point[4];
             int currentPos = topLeftCornerIndex;
             for (int i = 0; i < 4; i++)
             {
-                //Subtracts 4 if the index is above 3
-                currentPos -= currentPos > 3 ? 4 : 0;
-                //Adds 4 if the index is below 0
-                currentPos += currentPos < 0 ? 4 : 0;
-
-                tempOrder[i] = corners[currentPos];
+                //Copies value from corners into the correct position
+                tempOrder[i] = corners.GetValueOverflow(currentPos);
                 //This either increments or decrements the current position based on the order of the corners originally
                 currentPos += topRightCornerIndex - topLeftCornerIndex;
             }
 
             //Changes original array
             Array.Copy(tempOrder, corners, 4);
+
+            //Returns a double ranging from 2 to -2 where 2 is an angle of pi and -2 is an angle of -pi
+            double RelativeAngle(Point center, Point point)
+            {
+                int x = point.X - center.X;
+                int y = -(point.Y - center.Y);
+                double hypotenuse = Math.Sqrt(x * x + y * y);
+                //Gets sin(theta) of angle
+                double relativeAngle = y / hypotenuse;
+
+                //If x >=0 it is already right
+                if (x >= 0) return relativeAngle;
+
+                //Otherwise adjusts value
+                if (y >= 0)
+                    relativeAngle = 2 - relativeAngle;
+                else
+                    relativeAngle = -2 - relativeAngle;
+
+                return relativeAngle;
+            }
+        }
+
+        /// <summary>
+        ///     Get the element from an index in an array. If the index is outside the bounds of the array it will loop back around.
+        /// </summary>
+        /// <typeparam name="T">The kind of array.</typeparam>
+        /// <param name="array">The array to get the element from.</param>
+        /// <param name="index">The position in the array to get a element from.</param>
+        /// <returns>The element form the specified index.</returns>
+        public static T GetValueOverflow<T>(this T[] array, int index)
+        {
+            if (array.Length == 0)
+                throw new IndexOutOfRangeException("Index was outside the bounds of the array.");
+
+            //Brings index within the bounds of the array
+            while (index >= array.Length)
+                index -= array.Length;
+            while (index < 0)
+                index += array.Length;
+
+            return array[index];
         }
     }
 }
