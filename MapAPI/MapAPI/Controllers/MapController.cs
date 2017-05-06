@@ -47,7 +47,7 @@ namespace MapAPI.Controllers
         [HttpPost]
         public IActionResult Create()
         {
-            return new ObjectResult("You did it!!!");
+            return new ObjectResult(System.IO.File.ReadAllText("Maps/0.json"));
         }
     }
 }
