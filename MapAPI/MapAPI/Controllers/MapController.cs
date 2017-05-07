@@ -1,6 +1,7 @@
 using System.IO;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
 
@@ -45,7 +46,7 @@ namespace MapAPI.Controllers
         }
 
         [HttpPost]
-        public IActionResult Create()
+        public IActionResult Create(IFormCollection form)
         {
             return new ObjectResult(System.IO.File.ReadAllText("Maps/0.json"));
         }
