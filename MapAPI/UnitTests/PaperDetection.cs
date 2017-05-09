@@ -17,12 +17,13 @@ namespace UnitTests
         private readonly string[] _images =
         {
             "img1",
-            //"img2",
+            "img2",
             "img3",
             "img4",
             "img5",
             "img6",
             "img7",
+            //"img8",
             "img1L",
             //"img2L",
             //"img3L",
@@ -30,6 +31,7 @@ namespace UnitTests
             "img5L",
             "img6L",
             "img7L"
+            //"img8L"
         };
 
         [TestMethod]
@@ -54,7 +56,7 @@ namespace UnitTests
                 lines.Add(process.StandardOutput.ReadLine());
             //Checks against command line output
             Assert.AreEqual(
-                "[[{\"x\":732,\"y\":191},{\"x\":1171,\"y\":480},{\"x\":884,\"y\":779},{\"x\":442,\"y\":400}],[{\"x\":734,\"y\":190},{\"x\":1171,\"y\":480},{\"x\":884,\"y\":779},{\"x\":442,\"y\":400}],[{\"x\":734,\"y\":190},{\"x\":1171,\"y\":480},{\"x\":884,\"y\":779},{\"x\":442,\"y\":400}]]",
+                "[[{\"x\":782,\"y\":202},{\"x\":1247,\"y\":511},{\"x\":943,\"y\":828},{\"x\":471,\"y\":427}],[{\"x\":781,\"y\":202},{\"x\":1247,\"y\":511},{\"x\":941,\"y\":830},{\"x\":471,\"y\":427}],[{\"x\":799,\"y\":161},{\"x\":1247,\"y\":511},{\"x\":941,\"y\":830},{\"x\":471,\"y\":426}]]",
                 lines.Last());
         }
 
@@ -72,7 +74,7 @@ namespace UnitTests
 
                 Bitmap bitmap = new Bitmap($"Images//{image}.jpg");
                 //Get rectangle that corresponds to the paper (I hope) 
-                Point[] paper = ImageFunctions.IdentifyPaperCorners(bitmap, rectangles);
+                Point[] paper = bitmap.IdentifyPaperCorners(rectangles);
                 Assert.IsNotNull(paper);
 
                 //Draws all points on the image for manual checking
@@ -91,7 +93,7 @@ namespace UnitTests
                 tempBitmap.Save($"Images//Out//{image} - corners.png", ImageFormat.Png);
 
                 //Transforms and saves image for manual checking
-                bitmap = ImageFunctions.PerspectiveTransformImage(bitmap, paper, 1414, 1000);
+                bitmap = bitmap.PerspectiveTransformImage(paper, 1414, 1000);
                 bitmap.Save($"Images//Out//{image} - transform.png", ImageFormat.Png);
             }
         }
@@ -109,7 +111,7 @@ namespace UnitTests
             TryAllOrders(new[] {new Point(125, 100), new Point(300, 50), new Point(275, 150), new Point(150, 200)});
 
             //Difficult case
-            TryAllOrders(new[] {new Point(100, 100), new Point(200, 90), new Point(200, 200), new Point(90, 200) });
+            TryAllOrders(new[] {new Point(100, 100), new Point(200, 90), new Point(200, 200), new Point(90, 200)});
 
             void TryAllOrders(Point[] testPoints)
             {
@@ -176,7 +178,7 @@ namespace UnitTests
                     }
                 }
             };
-            
+
             string json = JsonConvert.SerializeObject(map);
             json = json.Replace("\"IsEmpty\":false,", "");
 

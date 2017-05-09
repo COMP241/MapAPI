@@ -10,11 +10,11 @@ namespace MapAPI.Helpers
     public static class OpenCVWrapper
     {
         /// <summary>
-        ///     Identifies all possible rectangles in an image.
+        ///     Identifies all possible rectangles in an image using an OpenCV program.
         /// </summary>
-        /// <param name="image">Image to detect rectangles in.</param>
+        /// <param name="image">The file name of the image to use.</param>
         /// <param name="debugWindows">Show image with all identified rectangles drawn on it.</param>
-        /// <returns>Returns array of all rectangles or null if there is an error.</returns>
+        /// <returns>An possible rectangles in the image. Null if no rectangles were identified or there was an error.</returns>
         public static Point[][] IdentifyRectangles(string image, bool debugWindows = false)
         {
             //Starts the identify rectangle process
