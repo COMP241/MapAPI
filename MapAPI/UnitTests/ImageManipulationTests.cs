@@ -12,25 +12,23 @@ using Newtonsoft.Json;
 namespace UnitTests
 {
     [TestClass]
-    public class PaperDetection
+    public class ImageManipulationTests
     {
         private readonly string[] _images =
         {
-            "img1",
             "img2",
-            "img3",
-            "img4",
+            //"img3",
+            //"img4",
             "img5",
             "img6",
             "img7",
             //"img8",
-            "img1L",
             //"img2L",
-            //"img3L",
-            //"img4L",
+            "img3L",
+            "img4L",
             "img5L",
             "img6L",
-            "img7L"
+            "img7L",
             //"img8L"
         };
 
@@ -42,7 +40,7 @@ namespace UnitTests
                 StartInfo = new ProcessStartInfo
                 {
                     FileName = "IdentifyRectangles",
-                    Arguments = "Images\\img1.jpg",
+                    Arguments = "Images\\img2.jpg",
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
                     CreateNoWindow = true,
@@ -56,7 +54,7 @@ namespace UnitTests
                 lines.Add(process.StandardOutput.ReadLine());
             //Checks against command line output
             Assert.AreEqual(
-                "[[{\"x\":782,\"y\":202},{\"x\":1247,\"y\":511},{\"x\":943,\"y\":828},{\"x\":471,\"y\":427}],[{\"x\":781,\"y\":202},{\"x\":1247,\"y\":511},{\"x\":941,\"y\":830},{\"x\":471,\"y\":427}],[{\"x\":799,\"y\":161},{\"x\":1247,\"y\":511},{\"x\":941,\"y\":830},{\"x\":471,\"y\":426}]]",
+                "[[{\"x\":471,\"y\":172},{\"x\":1348,\"y\":252},{\"x\":1342,\"y\":907},{\"x\":322,\"y\":789}]]",
                 lines.Last());
         }
 

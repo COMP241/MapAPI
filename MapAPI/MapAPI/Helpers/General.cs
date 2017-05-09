@@ -17,7 +17,11 @@ namespace MapAPI.Helpers
             if (array.Length == 0)
                 throw new IndexOutOfRangeException("Index was outside the bounds of the array.");
 
-            return array[index % array.Length];
+            index = index % array.Length;
+            if (index < 0)
+                index = array.Length + index;
+
+            return array[index];
         }
 
         /// <summary>

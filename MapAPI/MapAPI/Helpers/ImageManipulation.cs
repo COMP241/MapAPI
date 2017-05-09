@@ -16,7 +16,7 @@ namespace MapAPI.Helpers
         {
             if (rectangles.Length == 0)
                 throw new ArgumentException("The Array rectangles is empty.", nameof(rectangles));
-            if (rectangles.All(rectangle => rectangle.Length != 0))
+            if (rectangles.All(rectangle => rectangle.Length != 4))
                 throw new ArgumentException(
                     "At least one Array of Points element in rectangles does not exactly contain 4 points.",
                     nameof(rectangles));
