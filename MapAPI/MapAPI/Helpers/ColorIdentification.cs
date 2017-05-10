@@ -6,18 +6,57 @@ namespace MapAPI.Helpers
 {
     public static class ColorIdentification
     {
+        public static bool[] CreateThresholdArray(this Bitmap bitmap)
+        {
+            const int size = 200;
+
+            bool[] output = new bool[bitmap.Width * bitmap.Height];
+            output = output.Select(x => true).ToArray();
+
+            //Gets number of chunks equal to number size, min 1
+            int yChunkCount = Math.Max(bitmap.Height / size, 1);
+            int xChunkCount = Math.Max(bitmap.Width / size, 1);
+
+            for (int yChunk = 0; yChunk < yChunkCount; yChunk++)
+            for (int xChunk = 0; xChunk < xChunkCount; xChunk++)
+            {
+                int width;
+                //Remainder of image is lass segment
+                if (xChunk == xChunkCount - 1)
+                    width = bitmap.Width - size * xChunk;
+                //Do default size
+                else
+                    width = size;
+
+                //Same again with height
+                int height;
+                if (yChunk == yChunkCount - 1)
+                    height = bitmap.Height - size * yChunk;
+                else
+                    height = size;
+
+                Bitmap segment = bitmap.Clone(new Rectangle(size * xChunk, size * yChunk, width, height),
+                    bitmap.PixelFormat);
+
+                (float saturation, float brightness) medians = segment.MedianHSB();
+                bool[] segmentArray = segment.HBSThresholdCheck(medians.saturation, medians.brightness);
+
+                for (int y = 0; y < height; y++)
+                for (int x = 0; x < width; x++)
+                    output[bitmap.Width * (yChunk * 200 + y) + xChunk * 200 + x] = segmentArray[y * width + x];
+            }
+
+            return output;
+        }
+
         /// <summary>
         ///     Gets the median hue, saturation and brightness of all the pixels in this Bitmap.
         /// </summary>
         /// <returns>A Tuple consisting of the median hue, saturation and brightness for all the pixels in this bitmap.</returns>
-        public static (float hue, float saturation, float brightness) MedianHSB(this Bitmap bitmap)
+        public static (float saturation, float brightness) MedianHSB(this Bitmap bitmap)
         {
             //Put all the pixels in an array
             Color[] pixels = bitmap.ToColorArray();
-
-            //Get and sort hue
-            float[] hueValues = pixels.Select(pixel => pixel.GetHue()).ToArray();
-            Array.Sort(hueValues);
 
             //Get and sort saturation
             float[] saturationValues = pixels.Select(pixel => pixel.Saturation()).ToArray();
@@ -30,58 +69,51 @@ namespace MapAPI.Helpers
             int middle = pixels.Length / 2;
 
             //Return medians
-            return (hueValues[middle], saturationValues[middle], brightnessValues[middle]);
+            return (saturationValues[middle], brightnessValues[middle]);
         }
 
         /// <summary>
-        ///     Checks to see if each Color's HSB values in this Array of Colors is outside of the threshold of another set of HSB
-        ///     values.
+        ///     Checks to see if each Color's saturation and brightness values in this Array of Colors is outside of the threshold
+        ///     of another set of saturation and brightness.
         /// </summary>
-        /// <param name="hue">The hue to center the threshold around.</param>
         /// <param name="saturation">The saturation to center the threshold around.</param>
         /// <param name="brightness">The brightness to center the threshold around.</param>
-        /// <exception cref="ArgumentException">One or more of hue, saturation and brightness are outside of the possible range.</exception>
+        /// <exception cref="ArgumentException">One or more of saturation and brightness are outside of the possible range.</exception>
         /// <returns>
         ///     An Array of Booleans where each element is true if the corresponding element in this Array of Colors is
-        ///     outside of the threshold HSB values.
+        ///     outside of the threshold saturation and brightness values.
         /// </returns>
-        public static bool[] HBSThresholdCheck(this Bitmap bitmap, float hue, float saturation, float brightness)
+        public static bool[] HBSThresholdCheck(this Bitmap bitmap, float saturation, float brightness)
         {
-            if (hue < 0 || hue > 360)
-                throw new ArgumentException("hue must be between 0 and 360.", nameof(hue));
             if (saturation < 0 || saturation > 1)
                 throw new ArgumentException("saturation must be between 0 and 1.", nameof(saturation));
             if (brightness < 0 || brightness > 1)
                 throw new ArgumentException("brightness must be between 0 and 1.", nameof(brightness));
 
             Color[] pixels = bitmap.ToColorArray();
-            return pixels.Select(pixel => pixel.HBSThresholdCheck(hue, saturation, brightness)).ToArray();
+            return pixels.Select(pixel => pixel.HBSThresholdCheck(saturation, brightness)).ToArray();
         }
 
         /// <summary>
-        ///     Checks to see if this Color's HSB values is outside of the threshold of another set of HSB values.
+        ///     Checks to see if this Color's saturation and brightness values is outside of the threshold of another set of
+        ///     saturation and brightness values.
         /// </summary>
-        /// <param name="hue">The hue to center the threshold around.</param>
         /// <param name="saturation">The saturation to center the threshold around.</param>
         /// <param name="brightness">The brightness to center the threshold around.</param>
-        /// <exception cref="ArgumentException">One or more of hue, saturation and brightness are outside of the possible range.</exception>
-        /// <returns>True if at least one value is outside of the threshold HSB values.</returns>
-        private static bool HBSThresholdCheck(this Color pixel, float hue, float saturation, float brightness)
+        /// <exception cref="ArgumentException">One or more of saturation and brightness are outside of the possible range.</exception>
+        /// <returns>True if at least one value is outside of the threshold saturation and brightness values.</returns>
+        private static bool HBSThresholdCheck(this Color pixel, float saturation, float brightness)
         {
-            if (hue < 0 || hue > 360)
-                throw new ArgumentException("hue must be between 0 and 360.", nameof(hue));
             if (saturation < 0 || saturation > 1)
                 throw new ArgumentException("saturation must be between 0 and 1.", nameof(saturation));
             if (brightness < 0 || brightness > 1)
                 throw new ArgumentException("brightness must be between 0 and 1.", nameof(brightness));
 
             //Threshold differences
-            float hueThreshold = 10F;
             float saturationThreshold = 0.1F;
             float brightnessThreshold = 0.1F;
 
             //Current pixels values
-            float pixelHue = pixel.GetHue();
             float pixelSaturation = pixel.Saturation();
             float pixelBrightness = pixel.Brightness();
 
@@ -94,31 +126,6 @@ namespace MapAPI.Helpers
             if (pixelSaturation < saturation - saturationThreshold ||
                 pixelSaturation > saturation + saturationThreshold)
                 return true;
-
-            /*
-            //If saturation is low, hue can't be checked safely
-            if (pixelSaturation < 0.08)
-                return false;
-
-            //Gets hue min and max (because hue is a circle)
-            float hueMin = hue - hueThreshold;
-            hueMin += hueMin < 0 ? 360 : 0;
-            float hueMax = hue + hueThreshold;
-            hueMax -= hueMax > 360 ? 360 : 0;
-
-            //If max hue is greater than min hue does a normal check
-            if (hueMax > hueMin)
-            {
-                if (pixelHue < hueMin || pixelHue > hueMax)
-                    return true;
-            }
-            //If max hue is less than min hue does different check
-            else
-            {
-                if (pixelHue < hueMin && pixelHue > hueMax)
-                    return true;
-            }
-            */
 
             return false;
         }

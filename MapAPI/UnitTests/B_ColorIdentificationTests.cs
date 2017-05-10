@@ -47,8 +47,7 @@ namespace UnitTests
             }.ToBitmap(29, 1);
 
             //Check the values match precalculated ones
-            (float hue, float saturation, float brightness) medians = bitmap.MedianHSB();
-            Assert.AreEqual(Math.Round(medians.hue, 3), Math.Round(248.2258065, 3));
+            (float saturation, float brightness) medians = bitmap.MedianHSB();
             Assert.AreEqual(Math.Round(medians.saturation, 4), Math.Round(0.659090909, 4));
             Assert.AreEqual(Math.Round(medians.brightness, 4), Math.Round(0.745098039, 4));
         }
@@ -60,11 +59,9 @@ namespace UnitTests
             {
                 //Gets image
                 Bitmap bitmap = new Bitmap($"Images/Out/{image} - transform.png");
-                //Gets median values
-                (float hue, float saturation, float brightness) medians = bitmap.MedianHSB();
 
                 //Checks each pixels threshold
-                bool[] threshold = bitmap.HBSThresholdCheck(medians.hue, medians.saturation, medians.brightness);
+                bool[] threshold = bitmap.CreateThresholdArray();
 
                 //Create bitmap where black is true and white is false
                 Bitmap thresholdBitmap = new Bitmap(bitmap.Width, bitmap.Height);
