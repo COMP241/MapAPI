@@ -1,19 +1,38 @@
 ﻿using System;
 using System.Drawing;
+using System.Drawing.Imaging;
 using MapAPI.Helpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace UnitTests
 {
     [TestClass]
-    public class ColorIdentificationTests
+    // ReSharper disable once InconsistentNaming
+    public class B_ColorIdentificationTests
     {
+        private readonly string[] _images =
+        {
+            "img2",
+            //"img3",
+            //"img4",
+            "img5",
+            "img6",
+            "img7",
+            //"img8",
+            //"img2L",
+            "img3L",
+            "img4L",
+            "img5L",
+            "img6L",
+            "img7L"
+            //"img8L"
+        };
+
         [TestMethod]
         public void MedianHBSTest()
         {
             //Create bitmap with predefined pixels
-            Bitmap bitmap = new Bitmap(29, 1);
-            Color[] pixels =
+            Bitmap bitmap = new[]
             {
                 Color.FromArgb(70, 190, 23), Color.FromArgb(167, 70, 81), Color.FromArgb(233, 18, 172),
                 Color.FromArgb(193, 113, 141), Color.FromArgb(181, 73, 67), Color.FromArgb(238, 192, 6),
@@ -25,16 +44,38 @@ namespace UnitTests
                 Color.FromArgb(1, 254, 229), Color.FromArgb(102, 104, 147), Color.FromArgb(69, 105, 254),
                 Color.FromArgb(110, 91, 194), Color.FromArgb(227, 37, 49), Color.FromArgb(252, 155, 177),
                 Color.FromArgb(182, 165, 253), Color.FromArgb(101, 86, 19)
-            };
-            for (int y = 0; y < bitmap.Height; y++)
-            for (int x = 0; x < bitmap.Width; x++)
-                bitmap.SetPixel(x, y, pixels[y * bitmap.Width + x]);
+            }.ToBitmap(29, 1);
 
             //Check the values match precalculated ones
             (float hue, float saturation, float brightness) medians = bitmap.MedianHSB();
             Assert.AreEqual(Math.Round(medians.hue, 3), Math.Round(248.2258065, 3));
             Assert.AreEqual(Math.Round(medians.saturation, 4), Math.Round(0.659090909, 4));
             Assert.AreEqual(Math.Round(medians.brightness, 4), Math.Round(0.745098039, 4));
+        }
+
+        [TestMethod]
+        public void ThresholdHSBTest()
+        {
+            foreach (string image in _images)
+            {
+                //Gets image
+                Bitmap bitmap = new Bitmap($"Images/Out/{image} - transform.png");
+                //Gets median values
+                (float hue, float saturation, float brightness) medians = bitmap.MedianHSB();
+
+                //Checks each pixels threshold
+                bool[] threshold = bitmap.HBSThresholdCheck(medians.hue, medians.saturation, medians.brightness);
+
+                //Create bitmap where black is true and white is false
+                Bitmap thresholdBitmap = new Bitmap(bitmap.Width, bitmap.Height);
+                for (int y = 0; y < thresholdBitmap.Height; y++)
+                for (int x = 0; x < thresholdBitmap.Width; x++)
+                    thresholdBitmap.SetPixel(x, y,
+                        threshold[y * thresholdBitmap.Width + x] ? Color.Black : Color.White);
+
+                //Saves image
+                thresholdBitmap.Save($"Images/Out/{image} - threshold.png", ImageFormat.Png);
+            }
         }
     }
 }

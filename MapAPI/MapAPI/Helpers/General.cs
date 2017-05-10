@@ -50,5 +50,44 @@ namespace MapAPI.Helpers
 
             return (float) (max == 0 ? 0 : 1d - 1d * min / max);
         }
+
+        /// <summary>
+        ///     Creates an one-dimensional Array of Colors containing all the pixels in this bitmap going long the rows then down.
+        /// </summary>
+        /// <returns>A one-dimensional Array od Colors containing all the pixels in this bitmap.</returns>
+        public static Color[] ToColorArray(this Bitmap bitmap)
+        {
+            Color[] pixels = new Color[bitmap.Height * bitmap.Width];
+            for (int y = 0; y < bitmap.Height; y++)
+            for (int x = 0; x < bitmap.Width; x++)
+                pixels[y * bitmap.Width + x] = bitmap.GetPixel(x, y);
+
+            return pixels;
+        }
+
+        /// <summary>
+        ///     Creates a Bitmap from this one-dimensional Array of Colors with the specified dimensions.
+        /// </summary>
+        /// <param name="width">The width of the new Bitmap.</param>
+        /// <param name="height">The height of the new Bitmap.</param>
+        /// <exception cref="ArgumentException">
+        ///     The number of elements in this Array of Colors does not match the number of
+        ///     elements needed for this height and width.
+        /// </exception>
+        /// <returns>A Bitmap with colors matching this Array od Colors.</returns>
+        public static Bitmap ToBitmap(this Color[] pixels, int width, int height)
+        {
+            if (width * height != pixels.Length)
+                throw new ArgumentException(
+                    "Number of elements in this Array of Colors does not match the number of elements needed for this height and width.");
+
+            Bitmap bitmap = new Bitmap(width, height);
+
+            for (int y = 0; y < height; y++)
+            for (int x = 0; x < width; x++)
+                bitmap.SetPixel(x, y, pixels[y * width + x]);
+
+            return bitmap;
+        }
     }
 }

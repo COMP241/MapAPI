@@ -12,7 +12,8 @@ using Newtonsoft.Json;
 namespace UnitTests
 {
     [TestClass]
-    public class ImageManipulationTests
+    // ReSharper disable once InconsistentNaming
+    public class A_ImageManipulationTests
     {
         private readonly string[] _images =
         {
@@ -28,7 +29,7 @@ namespace UnitTests
             "img4L",
             "img5L",
             "img6L",
-            "img7L",
+            "img7L"
             //"img8L"
         };
 
