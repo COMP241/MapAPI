@@ -95,6 +95,7 @@ namespace MapAPI.Helpers
                 pixelSaturation > saturation + saturationThreshold)
                 return true;
 
+            /*
             //If saturation is low, hue can't be checked safely
             if (pixelSaturation < 0.08)
                 return false;
@@ -117,6 +118,7 @@ namespace MapAPI.Helpers
                 if (pixelHue < hueMin && pixelHue > hueMax)
                     return true;
             }
+            */
 
             return false;
         }
