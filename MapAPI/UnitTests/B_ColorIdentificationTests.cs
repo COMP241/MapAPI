@@ -61,17 +61,29 @@ namespace UnitTests
                 Bitmap bitmap = new Bitmap($"Images/Out/{image} - transform.png");
 
                 //Checks each pixels threshold
-                bool[] threshold = bitmap.CreateThresholdArray();
+                bool[][] threshold = bitmap.CreateThresholdArray();
 
                 //Create bitmap where black is true and white is false
                 Bitmap thresholdBitmap = new Bitmap(bitmap.Width, bitmap.Height);
                 for (int y = 0; y < thresholdBitmap.Height; y++)
                 for (int x = 0; x < thresholdBitmap.Width; x++)
                     thresholdBitmap.SetPixel(x, y,
-                        threshold[y * thresholdBitmap.Width + x] ? Color.Black : Color.White);
+                        threshold[y][x] ? Color.Black : Color.White);
 
                 //Saves image
                 thresholdBitmap.Save($"Images/Out/{image} - threshold.png", ImageFormat.Png);
+
+                threshold.ZhangSuenThinning();
+
+                //Create bitmap where black is true and white is false
+                Bitmap thinnedThresholdBitmap = new Bitmap(bitmap.Width, bitmap.Height);
+                for (int y = 0; y < thinnedThresholdBitmap.Height; y++)
+                for (int x = 0; x < thinnedThresholdBitmap.Width; x++)
+                    thinnedThresholdBitmap.SetPixel(x, y,
+                        threshold[y][x] ? Color.Black : Color.White);
+
+                //Saves image
+                thinnedThresholdBitmap.Save($"Images/Out/{image} - thinned.png", ImageFormat.Png);
             }
         }
     }

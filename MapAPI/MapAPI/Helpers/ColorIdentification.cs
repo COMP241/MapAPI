@@ -6,12 +6,21 @@ namespace MapAPI.Helpers
 {
     public static class ColorIdentification
     {
-        public static bool[] CreateThresholdArray(this Bitmap bitmap)
+        /// <summary>
+        ///     Checks to see if each Color's saturation and brightness values in this Array of Colors is outside of the threshold
+        ///     of another set of the median saturation and brightness in each section.
+        /// </summary>
+        /// <returns>
+        ///     A two-dimensional Array of Booleans where true means the corresponding pixel in this Bitmap was outside the
+        ///     threshold.
+        /// </returns>
+        public static bool[][] CreateThresholdArray(this Bitmap bitmap)
         {
             const int size = 200;
 
-            bool[] output = new bool[bitmap.Width * bitmap.Height];
-            output = output.Select(x => true).ToArray();
+            bool[][] output = new bool[bitmap.Height][];
+            for (int i = 0; i < output.Length; i++)
+                output[i] = new bool[bitmap.Width];
 
             //Gets number of chunks equal to number size, min 1
             int yChunkCount = Math.Max(bitmap.Height / size, 1);
@@ -43,7 +52,7 @@ namespace MapAPI.Helpers
 
                 for (int y = 0; y < height; y++)
                 for (int x = 0; x < width; x++)
-                    output[bitmap.Width * (yChunk * 200 + y) + xChunk * 200 + x] = segmentArray[y * width + x];
+                    output[yChunk * 200 + y][xChunk * 200 + x] = segmentArray[y * width + x];
             }
 
             return output;
@@ -110,8 +119,8 @@ namespace MapAPI.Helpers
                 throw new ArgumentException("brightness must be between 0 and 1.", nameof(brightness));
 
             //Threshold differences
-            float saturationThreshold = 0.1F;
-            float brightnessThreshold = 0.1F;
+            const float saturationThreshold = 0.1F;
+            const float brightnessThreshold = 0.1F;
 
             //Current pixels values
             float pixelSaturation = pixel.Saturation();
