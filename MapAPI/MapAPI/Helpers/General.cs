@@ -89,5 +89,126 @@ namespace MapAPI.Helpers
 
             return bitmap;
         }
+
+        /// <summary>
+        ///     Creates a Color from alpha, hue, saturation and brightness.
+        ///     Based on the code by Chris Hulbert, http://www.splinter.com.au/converting-hsv-to-rgb-colour-using-c/
+        /// </summary>
+        /// <param name="hue">The hue value.</param>
+        /// <param name="saturation">The saturation value.</param>
+        /// <param name="brightness">The brightness value.</param>
+        /// <returns>A Color with the given values.</returns>
+        public static Color FromHsb(float hue, float saturation, float brightness
+        )
+        {
+            // ######################################################################
+            // T. Nathan Mundhenk
+            // mundhenk@usc.edu
+            // C/C++ Macro HSV to RGB
+
+            while (hue < 0)
+            {
+                hue += 360;
+            }
+            ;
+            while (hue >= 360)
+            {
+                hue -= 360;
+            }
+            ;
+            double red, green, blue;
+            if (brightness <= 0)
+            {
+                red = green = blue = 0;
+            }
+            else if (saturation <= 0)
+            {
+                red = green = blue = brightness;
+            }
+            else
+            {
+                double hf = hue / 60.0;
+                int i = (int) Math.Floor(hf);
+                double f = hf - i;
+                double pv = brightness * (1 - saturation);
+                double qv = brightness * (1 - saturation * f);
+                double tv = brightness * (1 - saturation * (1 - f));
+                switch (i)
+                {
+
+                    // Red is the dominant color
+
+                    case 0:
+                        red = brightness;
+                        green = tv;
+                        blue = pv;
+                        break;
+
+                    // Green is the dominant color
+
+                    case 1:
+                        red = qv;
+                        green = brightness;
+                        blue = pv;
+                        break;
+                    case 2:
+                        red = pv;
+                        green = brightness;
+                        blue = tv;
+                        break;
+
+                    // Blue is the dominant color
+
+                    case 3:
+                        red = pv;
+                        green = qv;
+                        blue = brightness;
+                        break;
+                    case 4:
+                        red = tv;
+                        green = pv;
+                        blue = brightness;
+                        break;
+
+                    // Red is the dominant color
+
+                    case 5:
+                        red = brightness;
+                        green = pv;
+                        blue = qv;
+                        break;
+
+                    // Just in case we overshoot on our math by a little, we put these here. Since its a switch it won't slow us down at all to put these here.
+
+                    case 6:
+                        red = brightness;
+                        green = tv;
+                        blue = pv;
+                        break;
+                    case -1:
+                        red = brightness;
+                        green = pv;
+                        blue = qv;
+                        break;
+
+                    // The color is not defined, we should throw an error.
+
+                    default:
+                        //LFATAL("i Value error in Pixel conversion, Value is %d", i);
+                        red = green = blue = brightness; // Just pretend its black/white
+                        break;
+                }
+            }
+
+            return Color.FromArgb(255, Clamp((int) (red * 255.0)), Clamp((int) (green * 255.0)),
+                Clamp((int) (blue * 255.0)));
+
+            int Clamp(int i)
+            {
+                if (i < 0) return 0;
+                if (i > 255) return 255;
+                return i;
+            }
+        }
     }
 }
