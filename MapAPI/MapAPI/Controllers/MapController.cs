@@ -48,6 +48,7 @@ namespace MapAPI.Controllers
         [HttpPost]
         public IActionResult Create(IFormCollection form)
         {
+            System.Threading.Thread.Sleep(5000);
             return new ObjectResult(System.IO.File.ReadAllText("Maps/0.json"));
         }
     }
