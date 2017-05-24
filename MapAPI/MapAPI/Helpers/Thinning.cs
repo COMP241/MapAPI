@@ -12,13 +12,14 @@ namespace MapAPI.Helpers
     {
         public static void ZhangSuenThinning(this bool[][] s)
         {
+            bool[][] temp = ArrayClone(s);
             int count;
             do
             {
-                count = Step(1, s, s);
-                s = ArrayClone(s);
-                count += Step(2, s, s);
-                s = ArrayClone(s);
+                count = Step(1, temp, s);
+                temp = ArrayClone(s);
+                count += Step(2, temp, s);
+                temp = ArrayClone(s);
             } while (count > 0);
         }
 

@@ -76,6 +76,8 @@ namespace UnitTests
                 thresholdBitmap.Save($"Images/Out/{image} - threshold.png", ImageFormat.Png);
 
                 threshold.ZhangSuenThinning();
+                threshold.ZhangSuenThinning();
+                threshold.ZhangSuenThinning();
 
                 //Create bitmap where black is true and white is false
                 Bitmap thinnedThresholdBitmap = new Bitmap(bitmap.Width, bitmap.Height);
