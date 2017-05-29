@@ -1,9 +1,7 @@
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Linq;
 using MapAPI.Helpers;
 using MapAPI.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -15,87 +13,13 @@ namespace UnitTests
     // ReSharper disable once InconsistentNaming
     public class A_ImageManipulationTests
     {
-        private readonly string[] _images =
+        public static readonly string[] Images =
         {
-            "img2",
-            //"img3",
-            //"img4",
-            "img5",
-            "img6",
-            "img7",
-            //"img8",
-            //"img2L",
-            "img3L",
-            "img4L",
-            "img5L",
-            "img6L",
-            "img7L"
-            //"img8L"
+            //"AllColorTest1",
+            //"MazeTest1",
+            "AllColorTest4",
+            "MazeTest4"
         };
-
-        [TestMethod]
-        public void GetCPlusPlusOutputTest()
-        {
-            Process process = new Process
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = "IdentifyRectangles",
-                    Arguments = "Images\\img2.jpg",
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    CreateNoWindow = true,
-                    WorkingDirectory = Directory.GetCurrentDirectory()
-                }
-            };
-
-            List<string> lines = new List<string>();
-            process.Start();
-            while (!process.StandardOutput.EndOfStream)
-                lines.Add(process.StandardOutput.ReadLine());
-            //Checks against command line output
-            Assert.AreEqual(
-                "[[{\"x\":471,\"y\":172},{\"x\":1348,\"y\":252},{\"x\":1342,\"y\":907},{\"x\":322,\"y\":789}]]",
-                lines.Last());
-        }
-
-        [TestMethod]
-        public void GetPaperFromImageTest()
-        {
-            foreach (string image in _images)
-            {
-                //Gets rectangles
-                Point[][] rectangles = OpenCVWrapper.IdentifyRectangles($"Images//{image}.jpg");
-                //Checks valid json was output
-                Assert.IsNotNull(rectangles);
-                //Checks at least 1 rectangle was identified
-                Assert.AreNotEqual(rectangles.Length, 0);
-
-                Bitmap bitmap = new Bitmap($"Images//{image}.jpg");
-                //Get rectangle that corresponds to the paper (I hope) 
-                Point[] paper = bitmap.IdentifyPaperCorners(rectangles);
-                Assert.IsNotNull(paper);
-
-                //Draws all points on the image for manual checking
-                Bitmap tempBitmap = new Bitmap(bitmap);
-                foreach (Point corner in paper)
-                    for (int xOff = -2; xOff < 3; xOff++)
-                    for (int yOff = -2; yOff < 3; yOff++)
-                        if (corner.X + xOff < tempBitmap.Width && corner.Y + yOff < tempBitmap.Height &&
-                            corner.X + xOff >= 0 &&
-                            corner.Y + yOff >= 0)
-                            tempBitmap.SetPixel(corner.X + xOff, corner.Y + yOff, Color.Red);
-
-                //Save modified image
-                if (!Directory.Exists("Images//Out"))
-                    Directory.CreateDirectory("Images//Out");
-                tempBitmap.Save($"Images//Out//{image} - corners.png", ImageFormat.Png);
-
-                //Transforms and saves image for manual checking
-                bitmap = bitmap.PerspectiveTransformImage(paper, 1414, 1000);
-                bitmap.Save($"Images//Out//{image} - transform.png", ImageFormat.Png);
-            }
-        }
 
         [TestMethod]
         public void OrderClockwiseTest()
@@ -187,6 +111,44 @@ namespace UnitTests
 
             Map test = JsonConvert.DeserializeObject<Map>(File.ReadAllText("Maps/0.json"));
             Assert.IsNotNull(test);
+        }
+
+        [TestMethod]
+        public void GetPaperFromImageTest()
+        {
+            foreach (string image in Images)
+            {
+                //Gets rectangles
+                Point[][] rectangles = OpenCVWrapper.IdentifyRectangles($"Images//{image}.jpg");
+                //Checks valid json was output
+                Assert.IsNotNull(rectangles);
+                //Checks at least 1 rectangle was identified
+                Assert.AreNotEqual(rectangles.Length, 0);
+
+                Bitmap bitmap = new Bitmap($"Images//{image}.jpg");
+                //Get rectangle that corresponds to the paper (I hope) 
+                Point[] paper = bitmap.IdentifyPaperCorners(rectangles);
+                Assert.IsNotNull(paper);
+
+                //Draws all points on the image for manual checking
+                Bitmap tempBitmap = new Bitmap(bitmap);
+                foreach (Point corner in paper)
+                    for (int xOff = -2; xOff < 3; xOff++)
+                    for (int yOff = -2; yOff < 3; yOff++)
+                        if (corner.X + xOff < tempBitmap.Width && corner.Y + yOff < tempBitmap.Height &&
+                            corner.X + xOff >= 0 &&
+                            corner.Y + yOff >= 0)
+                            tempBitmap.SetPixel(corner.X + xOff, corner.Y + yOff, Color.Red);
+
+                //Save modified image
+                if (!Directory.Exists($"Images/Out/{image}"))
+                    Directory.CreateDirectory($"Images/Out/{image}");
+                tempBitmap.Save($"Images/Out/{image}/1 corners.png", ImageFormat.Png);
+
+                //Transforms and saves image for manual checking
+                bitmap = bitmap.PerspectiveTransformImage(paper, 1414, 1000);
+                bitmap.Save($"Images/Out/{image}/2 transform.png", ImageFormat.Png);
+            }
         }
     }
 }

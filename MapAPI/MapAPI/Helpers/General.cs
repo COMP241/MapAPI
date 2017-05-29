@@ -107,15 +107,9 @@ namespace MapAPI.Helpers
             // C/C++ Macro HSV to RGB
 
             while (hue < 0)
-            {
                 hue += 360;
-            }
-            ;
             while (hue >= 360)
-            {
                 hue -= 360;
-            }
-            ;
             double red, green, blue;
             if (brightness <= 0)
             {
@@ -135,7 +129,6 @@ namespace MapAPI.Helpers
                 double tv = brightness * (1 - saturation * (1 - f));
                 switch (i)
                 {
-
                     // Red is the dominant color
 
                     case 0:

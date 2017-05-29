@@ -1,4 +1,5 @@
 using System.IO;
+using System.Threading;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -48,7 +49,7 @@ namespace MapAPI.Controllers
         [HttpPost]
         public IActionResult Create(IFormCollection form)
         {
-            System.Threading.Thread.Sleep(5000);
+            Thread.Sleep(5000);
             return new ObjectResult(System.IO.File.ReadAllText("Maps/1.json"));
         }
     }

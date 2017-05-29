@@ -10,24 +10,6 @@ namespace UnitTests
     // ReSharper disable once InconsistentNaming
     public class B_ColorIdentificationTests
     {
-        private readonly string[] _images =
-        {
-            "img2",
-            //"img3",
-            //"img4",
-            "img5",
-            "img6",
-            "img7",
-            //"img8",
-            //"img2L",
-            "img3L",
-            "img4L",
-            "img5L",
-            "img6L",
-            "img7L"
-            //"img8L"
-        };
-
         [TestMethod]
         public void MedianHbsTest()
         {
@@ -55,15 +37,15 @@ namespace UnitTests
         [TestMethod]
         public void ThresholdHbsTest()
         {
-            foreach (string image in _images)
+            foreach (string image in A_ImageManipulationTests.Images)
             {
                 //Gets image
-                Bitmap bitmap = new Bitmap($"Images/Out/{image} - transform.png");
+                Bitmap bitmap = new Bitmap($"Images/Out/{image}/2 transform.png");
 
                 //Checks each pixels threshold
                 bool[][] threshold = bitmap.CreateThresholdArrayAndBalance();
 
-                bitmap.Save($"Images/Out/{image} - balanced.png", ImageFormat.Png);
+                bitmap.Save($"Images/Out/{image}/3 balanced.png", ImageFormat.Png);
 
                 //Create bitmap where black is true and white is false
                 Bitmap thresholdBitmap = new Bitmap(bitmap.Width, bitmap.Height);
@@ -73,7 +55,7 @@ namespace UnitTests
                         threshold[y][x] ? Color.Black : Color.White);
 
                 //Saves image
-                thresholdBitmap.Save($"Images/Out/{image} - threshold.png", ImageFormat.Png);
+                thresholdBitmap.Save($"Images/Out/{image}/4 threshold.png", ImageFormat.Png);
 
                 threshold.ZhangSuenThinning();
                 threshold.ZhangSuenThinning();
@@ -87,7 +69,7 @@ namespace UnitTests
                         threshold[y][x] ? Color.Black : Color.White);
 
                 //Saves image
-                thinnedThresholdBitmap.Save($"Images/Out/{image} - thinned.png", ImageFormat.Png);
+                thinnedThresholdBitmap.Save($"Images/Out/{image}/5 thinned.png", ImageFormat.Png);
             }
         }
     }
