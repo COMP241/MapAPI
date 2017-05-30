@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -31,6 +32,10 @@ namespace MapAPI
                 {
                     builder.AllowAnyOrigin();
                 });
+            });
+            services.Configure<FormOptions>(options =>
+            {
+                options.MultipartBodyLengthLimit = 60000000;
             });
         }
 
