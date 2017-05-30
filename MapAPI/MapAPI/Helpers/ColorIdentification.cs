@@ -1,11 +1,21 @@
 ﻿using System;
 using System.Drawing;
+using System.IO;
 using System.Linq;
+using MapAPI.Models;
+using Newtonsoft.Json;
 
 namespace MapAPI.Helpers
 {
     public static class ColorIdentification
     {
+        private static readonly ConfigFile.Config Config;
+
+        static ColorIdentification()
+        {
+            Config = JsonConvert.DeserializeObject<ConfigFile.Config>(File.ReadAllText("config.json"));
+        }
+
         /// <summary>
         ///     Checks to see if each Color's saturation and brightness values in this Array of Colors is outside of the threshold
         ///     of another set of the median saturation and brightness in each section. Also preforms a white balance based on the
@@ -17,7 +27,7 @@ namespace MapAPI.Helpers
         /// </returns>
         public static bool[][] CreateThresholdArrayAndBalance(this Bitmap bitmap)
         {
-            const int size = 200;
+            int size = Config.ProcessRegionSize;
 
             bool[][] output = new bool[bitmap.Height][];
             for (int i = 0; i < output.Length; i++)
@@ -31,7 +41,7 @@ namespace MapAPI.Helpers
             for (int xChunk = 0; xChunk < xChunkCount; xChunk++)
             {
                 int width;
-                //Remainder of image is lass segment
+                //Remainder of image is last segment
                 if (xChunk == xChunkCount - 1)
                     width = bitmap.Width - size * xChunk;
                 //Do default size
@@ -142,8 +152,8 @@ namespace MapAPI.Helpers
                 throw new ArgumentException("brightness must be between 0 and 1.", nameof(brightness));
 
             //Threshold differences
-            const float saturationThreshold = 0.1F;
-            const float brightnessThreshold = 0.1F;
+            float saturationThreshold = Config.Thresholds.Saturation;
+            float brightnessThreshold = Config.Thresholds.Brightness;
 
             //Current pixels values
             float pixelSaturation = pixel.Saturation();

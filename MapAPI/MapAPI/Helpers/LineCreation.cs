@@ -1,13 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using MapAPI.Models;
+using Newtonsoft.Json;
 
 namespace MapAPI.Helpers
 {
     public static class LineCreation
     {
+        private static readonly ConfigFile.Config Config;
+
+        static LineCreation()
+        {
+            Config = JsonConvert.DeserializeObject<ConfigFile.Config>(File.ReadAllText("config.json"));
+        }
+
         /// <summary>
         ///     Finds all lines in this 2-dimensional Array of Booleans.
         /// </summary>
@@ -208,8 +217,8 @@ namespace MapAPI.Helpers
         /// </summary>
         public static void ReduceLines(this List<List<PointF>> lines)
         {
-            const int initialProportion = 10;
-            const double angelLimit = 17 * Math.PI / 18;
+            int initialProportion = Config.LineReduction.InitialCut;
+            double angelLimit = Config.LineReduction.AngleLimit;
 
             foreach (List<PointF> line in lines)
             {
@@ -293,8 +302,10 @@ namespace MapAPI.Helpers
                 if (result == null) continue;
 
                 //If any of the points are within 5 units of all other points it doesn't make the loop as it is probably just a mistake
+                int minLoopSize = Config.MinLoopSize;
                 if (result.Any(point => result.Aggregate(true,
-                    (current, x) => current && Math.Abs(point.X - x.X) <= 5 && Math.Abs(point.Y - x.Y) <= 5))) continue;
+                    (current, x) => current && Math.Abs(point.X - x.X) < minLoopSize &&
+                                    Math.Abs(point.Y - x.Y) < minLoopSize))) continue;
 
                 //Removes all but the last line
                 linesInLoop.GetRange(0, linesInLoop.Count - 1).ForEach(x => lines.Remove(x));

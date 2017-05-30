@@ -15,8 +15,8 @@ namespace UnitTests
     {
         public static readonly string[] Images =
         {
-            //"AllColorTest1",
-            //"MazeTest1",
+            "AllColorTest1",
+            "MazeTest1",
             "AllColorTest4",
             "MazeTest4"
         };

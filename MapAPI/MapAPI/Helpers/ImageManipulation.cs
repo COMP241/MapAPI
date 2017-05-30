@@ -1,11 +1,21 @@
 ﻿using System;
 using System.Drawing;
+using System.IO;
 using System.Linq;
+using MapAPI.Models;
+using Newtonsoft.Json;
 
 namespace MapAPI.Helpers
 {
     public static class ImageManipulation
     {
+        private static readonly ConfigFile.Config Config;
+
+        static ImageManipulation()
+        {
+            Config = JsonConvert.DeserializeObject<ConfigFile.Config>(File.ReadAllText("config.json"));
+        }
+
         /// <summary>
         ///     Tries to identifies the paper from a set of rectangles.
         /// </summary>
@@ -61,7 +71,8 @@ namespace MapAPI.Helpers
             //Checks if pixel is "white" i.e. Saturation < 30 and Brightness > 50
             bool IsWhite(Color pixel)
             {
-                return pixel.Saturation() < 0.3 && pixel.Brightness() > 0.5;
+                return pixel.Saturation() < Config.WhiteDefinition.Saturation &&
+                       pixel.Brightness() > Config.WhiteDefinition.Brightness;
             }
         }
 

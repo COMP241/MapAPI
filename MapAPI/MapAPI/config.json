@@ -1,0 +1,16 @@
+﻿{
+  "whiteDefinition": {
+    "saturation": 0.3,
+    "brightness": 0.5
+  },
+  "processRegionSize": 200,
+  "thresholds": {
+    "saturation": 0.1,
+    "brightness": 0.1
+  },
+  "lineReduction": {
+    "angleLimit": 2.967,
+    "initialCut": 10
+  },
+  "minLoopSize": 6
+}
