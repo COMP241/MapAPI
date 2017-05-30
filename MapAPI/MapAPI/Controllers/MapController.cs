@@ -38,7 +38,7 @@ namespace MapAPI.Controllers
         {
             //Finds working directory   
 #if DEBUG
-            _workingDirectory = $"{environment.ContentRootPath}\\bin\\Debug\\netcoreapp1.1";
+            _workingDirectory = Path.Combine(environment.ContentRootPath, "bin", "Debug", "netcoreapp1.1");
 #else
             _workingDirectory = environment.ContentRootPath;
 #endif
