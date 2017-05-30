@@ -20,13 +20,21 @@
             public int InitialCut { get; set; }
         }
 
+        public class PixelCounts
+        {
+            public int InitialImage { get; set; }
+            public int TrandformedImage { get; set; }
+        }
+
         public class Config
         {
+            public float RectangleShift { get; set; }
             public WhiteDefinition WhiteDefinition { get; set; }
             public int ProcessRegionSize { get; set; }
             public Thresholds Thresholds { get; set; }
             public LineReduction LineReduction { get; set; }
             public int MinLoopSize { get; set; }
+            public PixelCounts PixelCounts { get; set; }
         }
     }
 }

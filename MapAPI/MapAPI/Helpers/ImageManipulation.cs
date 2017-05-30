@@ -38,8 +38,29 @@ namespace MapAPI.Helpers
 
             //Orders rectangles from largest to smallest
             rectangles = rectangles.OrderByDescending(ApproximateAreaOfRectangle).ToArray();
+
             foreach (Point[] rectangle in rectangles)
             {
+                rectangle.OrderClockwise();
+
+                //Gets center of rectangle
+                PointF center = new PointF(rectangle.Average(point => (float) point.X),
+                    rectangle.Average(point => (float) point.Y));
+
+                for (int i = 0; i < rectangle.Length; i++)
+                {
+                    Point point = rectangle[i];
+
+                    //Finds 1% of distance from point to center
+                    float xDiff = point.X - center.X;
+                    float yDiff = point.Y - center.Y;
+                    xDiff *= Config.RectangleShift;
+                    yDiff *= Config.RectangleShift;
+
+                    //Moves point in 1%
+                    rectangle[i] = new Point((int) (point.X - xDiff), (int) (point.Y - yDiff));
+                }
+
                 //Checks if all 4 points of the rectangle lie on a white pixel
                 bool allPointsWhite = rectangle.Aggregate(true,
                     (current, point) => current && IsWhite(image.GetPixel(point.X, point.Y)));
@@ -48,7 +69,7 @@ namespace MapAPI.Helpers
             }
 
             //Returns the largest rectangle if none worked
-            return rectangles[0];
+            return null;
 
             //Returns the approximate area of the rectangle
             int ApproximateAreaOfRectangle(Point[] rectangle)
@@ -88,7 +109,7 @@ namespace MapAPI.Helpers
         /// <param name="width">A 32-bit integer that represents the width of the new Bitmap.</param>
         /// <param name="height">A 32-bit integer that represents the height of the new Bitmap.</param>
         /// <exception cref="ArgumentException">The Array of Points is invalid.</exception>
-        /// <returns>The skewed image based on this Bitmap</returns>
+        /// <returns>The skewed image based on this Bitmap.</returns>
         public static Bitmap PerspectiveTransformImage(this Bitmap image, Point[] points, int width, int height)
         {
             if (points.Length != 4)
@@ -98,8 +119,6 @@ namespace MapAPI.Helpers
                 throw new ArgumentException(
                     "At least one Point element in the Array of Points points is not within the bounds of the current image.",
                     nameof(points));
-
-            points.OrderClockwise();
 
             Point topLeft = points[0];
             Point topRight = points[1];

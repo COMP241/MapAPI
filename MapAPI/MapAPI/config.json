@@ -1,7 +1,8 @@
 ﻿{
+  "rectangleShift":  0.01,
   "whiteDefinition": {
     "saturation": 0.3,
-    "brightness": 0.5
+    "brightness": 0.25
   },
   "processRegionSize": 200,
   "thresholds": {
@@ -12,5 +13,9 @@
     "angleLimit": 2.967,
     "initialCut": 10
   },
-  "minLoopSize": 6
+  "minLoopSize": 6,
+  "pixelCounts": {
+    "initialImage": 3000000,
+    "trandformedImage": 1500000
+  }
 }
