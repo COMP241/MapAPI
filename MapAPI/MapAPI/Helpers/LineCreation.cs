@@ -392,6 +392,16 @@ namespace MapAPI.Helpers
                 }
             }
 
+            //Deletes short lines
+            for (int i = 0; i < lines.Count; i++)
+            {
+                if (!(lengths[i] < Config.MinLineLength)) continue;
+
+                lengths.RemoveAt(i);
+                lines.RemoveAt(i);
+                i--;
+            }
+
             //Tries to extend line
             bool ExtendLine(bool fromStart, int index)
             {
@@ -412,6 +422,9 @@ namespace MapAPI.Helpers
                 {
                     joinedLine = line.JoinWith(options[0]);
 
+                    //Adds lengths
+                    lengths[lines.IndexOf(line)] += lengths[lines.IndexOf(options[0])];
+
                     //Deletes stuff
                     lengths.RemoveAt(lines.IndexOf(options[0]));
                     lines.Remove(options[0]);
@@ -425,6 +438,9 @@ namespace MapAPI.Helpers
 
                     //Join them
                     joinedLine = line.JoinWith(longestOption);
+
+                    //Adds lengths
+                    lengths[lines.IndexOf(line)] += lengths[lines.IndexOf(longestOption)];
 
                     //Deletes stuff
                     lengths.RemoveAt(lines.IndexOf(longestOption));

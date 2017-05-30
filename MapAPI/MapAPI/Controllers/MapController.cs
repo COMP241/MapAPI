@@ -104,7 +104,7 @@ namespace MapAPI.Controllers
             }
             catch (Exception)
             {
-                Directory.Delete(workingDirectory);
+                Directory.Delete(workingDirectory, true);
                 return new UnsupportedMediaTypeResult();
             }
 
@@ -155,7 +155,8 @@ namespace MapAPI.Controllers
                 OpenCVWrapper.IdentifyRectangles($"\"{Path.Combine(workingDirectory, "scaled.png")}\"");
             if (rectangles == null)
             {
-                Directory.Delete(workingDirectory);
+                initialImage.Dispose();
+                Directory.Delete(workingDirectory, true);
                 throw new Exception("No rectangles were found.");
             }
 
@@ -168,7 +169,8 @@ namespace MapAPI.Controllers
             Point[] paper = scaledImage.IdentifyPaperCorners(rectangles);
             if (paper == null)
             {
-                Directory.Delete(workingDirectory);
+                initialImage.Dispose();
+                Directory.Delete(workingDirectory, true);
                 throw new Exception("No paper was found.");
             }
 
@@ -199,6 +201,7 @@ namespace MapAPI.Controllers
 #if DEBUG
             temp = Debug.BitmapFromBool(threshold);
             temp.Save(Path.Combine(_workingDirectory, "Debug", "6 Threshold.png"), ImageFormat.Png);
+            perspectiveImage.Save(Path.Combine(_workingDirectory, "Debug", "7 Correction.png"), ImageFormat.Png);
 #endif
 
             //Thins points
@@ -206,7 +209,7 @@ namespace MapAPI.Controllers
 
 #if DEBUG
             temp = Debug.BitmapFromBool(threshold);
-            temp.Save(Path.Combine(_workingDirectory, "Debug", "7 Thinned.png"), ImageFormat.Png);
+            temp.Save(Path.Combine(_workingDirectory, "Debug", "8 Thinned.png"), ImageFormat.Png);
 #endif
 
             #endregion
@@ -223,6 +226,9 @@ namespace MapAPI.Controllers
             List<List<PointF>> loops = lineParts.CreateLoops();
 
             //Joins remaining lines
+            lineParts.ConnectLines();
+
+            //Create line objects
             List<Line> lines = LineCreation.CreateLineObjects(lineParts, loops, perspectiveImage);
 
             //Creates a map
@@ -240,12 +246,12 @@ namespace MapAPI.Controllers
             System.IO.File.WriteAllText(Path.Combine(_workingDirectory, "Maps", $"{id}.json"), json);
 
 #if DEBUG
-            System.IO.File.WriteAllText(Path.Combine(workingDirectory, "8 Json.json"), json);
+            System.IO.File.WriteAllText(Path.Combine(_workingDirectory, "Debug", "9 Json.json"), json);
 #endif
 
             #endregion
-
-            Directory.Delete(workingDirectory);
+            initialImage.Dispose();
+            Directory.Delete(workingDirectory, true);
 
             //Returns map
             return new ObjectResult(json)

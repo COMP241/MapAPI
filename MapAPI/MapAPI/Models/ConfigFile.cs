@@ -34,6 +34,7 @@
             public Thresholds Thresholds { get; set; }
             public LineReduction LineReduction { get; set; }
             public int MinLoopSize { get; set; }
+            public int MinLineLength { get; set; }
             public PixelCounts PixelCounts { get; set; }
         }
     }
