@@ -125,23 +125,14 @@ namespace MapAPI.Controllers
             int width = Config.PixelCounts.InitialImage / height;
 
             //Scales image
-            Rectangle scaledRect = new Rectangle(0, 0, width, height);
-            Bitmap scaledImage = new Bitmap(width, height);
-            scaledImage.SetResolution(initialImage.HorizontalResolution, initialImage.VerticalResolution);
-            using (Graphics graphics = Graphics.FromImage(scaledImage))
-            {
-                graphics.CompositingMode = CompositingMode.SourceCopy;
-                graphics.CompositingQuality = CompositingQuality.HighQuality;
-                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                graphics.SmoothingMode = SmoothingMode.HighQuality;
-                graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
-                using (ImageAttributes wrapMode = new ImageAttributes())
-                {
-                    wrapMode.SetWrapMode(WrapMode.TileFlipXY);
-                    graphics.DrawImage(initialImage, scaledRect, 0, 0, initialImage.Width, initialImage.Height,
-                        GraphicsUnit.Pixel, wrapMode);
-                }
-            }
+            Bitmap scaledImage =
+                initialImage.PerspectiveTransformImage(
+                    new[]
+                    {
+                        new Point(0, 0), new Point(initialImage.Width - 1, 0),
+                        new Point(initialImage.Width - 1, initialImage.Height - 1),
+                        new Point(0, initialImage.Height - 1)
+                    }, width, height);
 
             //Saves image to be used by OpenCV code
             scaledImage.Save(Path.Combine(workingDirectory, "scaled.png"), ImageFormat.Png);
