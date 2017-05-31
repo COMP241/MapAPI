@@ -318,6 +318,8 @@ namespace MapAPI.Helpers
                 loops.Add(result);
             }
 
+            loops.Sort((loop1, loop2) => LengthOfLine(loop2).CompareTo(LengthOfLine(loop1)));
+
             return loops;
 
             //Recursively goes through looking for possible
@@ -402,6 +404,8 @@ namespace MapAPI.Helpers
                 i--;
             }
 
+            lines.Sort((line1, line2) => LengthOfLine(line2).CompareTo(LengthOfLine(line1)));
+
             //Tries to extend line
             bool ExtendLine(bool fromStart, int index)
             {
@@ -450,16 +454,6 @@ namespace MapAPI.Helpers
                 lines[index] = joinedLine;
 
                 return true;
-            }
-
-            double LengthOfLine(List<PointF> line)
-            {
-                double length = 0;
-                for (int i = 0; i < line.Count - 1; i++)
-                    length += Math.Sqrt((line[i].X - line[i + 1].X) * (line[i].X - line[i + 1].X) +
-                                        (line[i].Y - line[i + 1].Y) * (line[i].Y - line[i + 1].Y));
-
-                return length;
             }
         }
 
@@ -600,6 +594,16 @@ namespace MapAPI.Helpers
             if (mainLine.Count == line1.Count)
                 throw new ArgumentException("The two Lists didn't have a set of matching ends.", nameof(line));
             return line1;
+        }
+
+        private static double LengthOfLine(List<PointF> line)
+        {
+            double length = 0;
+            for (int i = 0; i < line.Count - 1; i++)
+                length += Math.Sqrt((line[i].X - line[i + 1].X) * (line[i].X - line[i + 1].X) +
+                                    (line[i].Y - line[i + 1].Y) * (line[i].Y - line[i + 1].Y));
+
+            return length;
         }
     }
 }

@@ -33,10 +33,6 @@ namespace MapAPI
                     builder.AllowAnyOrigin();
                 });
             });
-            services.Configure<FormOptions>(options =>
-            {
-                options.MultipartBodyLengthLimit = 60000000;
-            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
