@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Net;
 using MapAPI.Helpers;
 using MapAPI.Models;
 using Microsoft.AspNetCore.Cors;
@@ -144,11 +144,11 @@ namespace MapAPI.Controllers
             //Finds possible rectangles with OpenCV
             Point[][] rectangles =
                 OpenCVWrapper.IdentifyRectangles($"\"{Path.Combine(workingDirectory, "scaled.png")}\"");
-            if (rectangles == null)
+            if (rectangles == null || rectangles.Length == 0)
             {
                 initialImage.Dispose();
                 Directory.Delete(workingDirectory, true);
-                throw new Exception("No rectangles were found.");
+                return new StatusCodeResult((int) HttpStatusCode.InternalServerError);
             }
 
 #if DEBUG
@@ -158,11 +158,11 @@ namespace MapAPI.Controllers
 
             //Finds the correct rectangle
             Point[] paper = scaledImage.IdentifyPaperCorners(rectangles);
-            if (paper == null)
+            if (paper == null || paper.Length != 4)
             {
                 initialImage.Dispose();
                 Directory.Delete(workingDirectory, true);
-                throw new Exception("No paper was found.");
+                return new StatusCodeResult((int) HttpStatusCode.InternalServerError);
             }
 
 #if DEBUG
@@ -172,8 +172,8 @@ namespace MapAPI.Controllers
 
             //Finds width and height of transformation
             ratio = 1.414;
-            height = (int) Math.Sqrt(Config.PixelCounts.TrandformedImage / ratio);
-            width = Config.PixelCounts.TrandformedImage / height;
+            height = (int) Math.Sqrt(Config.PixelCounts.TransformedImage / ratio);
+            width = Config.PixelCounts.TransformedImage / height;
 
             //Transforms image
             Bitmap perspectiveImage = scaledImage.PerspectiveTransformImage(paper, width, height);
@@ -241,6 +241,7 @@ namespace MapAPI.Controllers
 #endif
 
             #endregion
+
             initialImage.Dispose();
             Directory.Delete(workingDirectory, true);
 

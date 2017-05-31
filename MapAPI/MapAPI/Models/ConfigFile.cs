@@ -23,7 +23,7 @@
         public class PixelCounts
         {
             public int InitialImage { get; set; }
-            public int TrandformedImage { get; set; }
+            public int TransformedImage { get; set; }
         }
 
         public class Config
