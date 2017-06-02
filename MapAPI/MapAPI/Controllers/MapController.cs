@@ -76,11 +76,15 @@ namespace MapAPI.Controllers
         {
             //Start of working directory
             string workingDirectory = Path.Combine(_workingDirectory, "Working ");
+            // ReSharper disable once RedundantAssignment, needs to be there for non debug compile
             Bitmap initialImage = null;
 #if !DEBUG
             try
             {
 #endif
+            if (form.Files.Count == 0)
+                return new BadRequestResult();
+
             int id;
 
             //Gets the id for this upload, locked so only one thread can enter at a time
@@ -119,20 +123,31 @@ namespace MapAPI.Controllers
 
             #region Image Manipulation
 
-            //Gets dimensions of scaled image
-            double ratio = (double) initialImage.Width / initialImage.Height;
-            int height = (int) Math.Sqrt(Config.PixelCounts.InitialImage / ratio);
-            int width = Config.PixelCounts.InitialImage / height;
+            Bitmap scaledImage;
+            double ratio;
+            int height;
+            int width;
+            if (initialImage.Width * initialImage.Height > Config.PixelCounts.InitialImage)
+            {
+                //Gets dimensions of scaled image
+                ratio = (double) initialImage.Width / initialImage.Height;
+                height = (int) Math.Sqrt(Config.PixelCounts.InitialImage / ratio);
+                width = Config.PixelCounts.InitialImage / height;
 
-            //Scales image
-            Bitmap scaledImage =
-                initialImage.PerspectiveTransformImage(
-                    new[]
-                    {
-                        new Point(0, 0), new Point(initialImage.Width - 1, 0),
-                        new Point(initialImage.Width - 1, initialImage.Height - 1),
-                        new Point(0, initialImage.Height - 1)
-                    }, width, height);
+                //Scales image in a poor way cause the proper way didn't work on Linux
+                scaledImage =
+                    initialImage.PerspectiveTransformImage(
+                        new[]
+                        {
+                            new Point(0, 0), new Point(initialImage.Width - 1, 0),
+                            new Point(initialImage.Width - 1, initialImage.Height - 1),
+                            new Point(0, initialImage.Height - 1)
+                        }, width, height);
+            }
+            else
+            {
+                scaledImage = initialImage.Copy();
+            }
 
             //Saves image to be used by OpenCV code
             scaledImage.Save(Path.Combine(workingDirectory, "scaled.png"), ImageFormat.Png);

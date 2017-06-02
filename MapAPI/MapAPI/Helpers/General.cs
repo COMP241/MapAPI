@@ -98,8 +98,7 @@ namespace MapAPI.Helpers
         /// <param name="saturation">The saturation value.</param>
         /// <param name="brightness">The brightness value.</param>
         /// <returns>A Color with the given values.</returns>
-        public static Color FromHsb(float hue, float saturation, float brightness
-        )
+        public static Color FromHsb(float hue, float saturation, float brightness)
         {
             // ######################################################################
             // T. Nathan Mundhenk
@@ -202,6 +201,25 @@ namespace MapAPI.Helpers
                 if (i > 255) return 255;
                 return i;
             }
+        }
+
+        /// <summary>
+        ///     Copies all of the color values of this Bitmap and creates a new Bitmap from them.
+        /// </summary>
+        /// <returns>A new Bitmap with all the same pixels at this Bitmap.</returns>
+        public static Bitmap Copy(this Bitmap bitmap)
+        {
+            Bitmap output = new Bitmap(bitmap.Width, bitmap.Height);
+
+            for (int x = 0; x < bitmap.Width; x++)
+            {
+                for (int y = 0; y < bitmap.Height; y++)
+                {
+                    output.SetPixel(x, y, bitmap.GetPixel(x, y));
+                }
+            }
+
+            return output;
         }
     }
 }
