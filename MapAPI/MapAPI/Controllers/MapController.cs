@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
 
 namespace MapAPI.Controllers
@@ -78,12 +79,22 @@ namespace MapAPI.Controllers
             string workingDirectory = Path.Combine(_workingDirectory, "Working ");
             // ReSharper disable once RedundantAssignment, needs to be there for non debug compile
             Bitmap initialImage = null;
+            Bitmap temp;
+            double ratio;
+            int height;
+            int width;
+
 #if !DEBUG
             try
             {
 #endif
             if (form.Files.Count == 0)
                 return new BadRequestResult();
+
+            bool transform = true;
+            form.TryGetValue("transform", out StringValues value);
+            if (value[0] == "false")
+                transform = false;
 
             int id;
 
@@ -124,9 +135,6 @@ namespace MapAPI.Controllers
             #region Image Manipulation
 
             Bitmap scaledImage;
-            double ratio;
-            int height;
-            int width;
             if (initialImage.Width * initialImage.Height > Config.PixelCounts.InitialImage)
             {
                 //Gets dimensions of scaled image
@@ -156,46 +164,55 @@ namespace MapAPI.Controllers
             initialImage.Save(Path.Combine(_workingDirectory, "Debug", "2 Scaled.png"), ImageFormat.Png);
 #endif
 
-            //Finds possible rectangles with OpenCV
-            Point[][] rectangles =
-                OpenCVWrapper.IdentifyRectangles($"\"{Path.Combine(workingDirectory, "scaled.png")}\"");
-            if (rectangles == null || rectangles.Length == 0)
+            Bitmap perspectiveImage;
+            //Will only run this if transform flag has been checked
+            if (transform)
             {
-                initialImage.Dispose();
-                Directory.Delete(workingDirectory, true);
-                return new StatusCodeResult((int) HttpStatusCode.InternalServerError);
-            }
+                //Finds possible rectangles with OpenCV
+                Point[][] rectangles =
+                    OpenCVWrapper.IdentifyRectangles($"\"{Path.Combine(workingDirectory, "scaled.png")}\"");
+                if (rectangles == null || rectangles.Length == 0)
+                {
+                    initialImage.Dispose();
+                    Directory.Delete(workingDirectory, true);
+                    return new StatusCodeResult((int) HttpStatusCode.InternalServerError);
+                }
 
 #if DEBUG
-            Bitmap temp = Debug.DrawPoints(scaledImage, rectangles);
-            temp.Save(Path.Combine(_workingDirectory, "Debug", "3 Rectangles.png"), ImageFormat.Png);
+                temp = Debug.DrawPoints(scaledImage, rectangles);
+                temp.Save(Path.Combine(_workingDirectory, "Debug", "3 Rectangles.png"), ImageFormat.Png);
 #endif
 
-            //Finds the correct rectangle
-            Point[] paper = scaledImage.IdentifyPaperCorners(rectangles);
-            if (paper == null || paper.Length != 4)
+                //Finds the correct rectangle
+                Point[] paper = scaledImage.IdentifyPaperCorners(rectangles);
+                if (paper == null || paper.Length != 4)
+                {
+                    initialImage.Dispose();
+                    Directory.Delete(workingDirectory, true);
+                    return new StatusCodeResult((int) HttpStatusCode.InternalServerError);
+                }
+
+#if DEBUG
+                temp = Debug.DrawPoints(scaledImage, paper);
+                temp.Save(Path.Combine(_workingDirectory, "Debug", "4 Paper.png"), ImageFormat.Png);
+#endif
+
+                //Finds width and height of transformation
+                ratio = 1.414;
+                height = (int) Math.Sqrt(Config.PixelCounts.TransformedImage / ratio);
+                width = Config.PixelCounts.TransformedImage / height;
+
+                //Transforms image
+                perspectiveImage = scaledImage.PerspectiveTransformImage(paper, width, height);
+
+#if DEBUG
+                perspectiveImage.Save(Path.Combine(_workingDirectory, "Debug", "5 Perspective.png"), ImageFormat.Png);
+#endif
+            }
+            else
             {
-                initialImage.Dispose();
-                Directory.Delete(workingDirectory, true);
-                return new StatusCodeResult((int) HttpStatusCode.InternalServerError);
+                perspectiveImage = scaledImage.Copy();
             }
-
-#if DEBUG
-            temp = Debug.DrawPoints(scaledImage, paper);
-            temp.Save(Path.Combine(_workingDirectory, "Debug", "4 Paper.png"), ImageFormat.Png);
-#endif
-
-            //Finds width and height of transformation
-            ratio = 1.414;
-            height = (int) Math.Sqrt(Config.PixelCounts.TransformedImage / ratio);
-            width = Config.PixelCounts.TransformedImage / height;
-
-            //Transforms image
-            Bitmap perspectiveImage = scaledImage.PerspectiveTransformImage(paper, width, height);
-
-#if DEBUG
-            perspectiveImage.Save(Path.Combine(_workingDirectory, "Debug", "5 Perspective.png"), ImageFormat.Png);
-#endif
 
             #endregion
 

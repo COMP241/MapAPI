@@ -64,9 +64,10 @@ namespace MapAPI.Helpers
 
                 //Gets the factor required to balance the image
                 Color averageColor = General.FromHsb(medians.hue, medians.saturation, medians.brightness);
-                (float red, float green, float blue) whiteBalanceModifier =
-                    (255F / averageColor.R, 255F / averageColor.G, 255F / averageColor.B);
-
+                (float red, float green, float blue) whiteBalanceModifier = (
+                    255F / Math.Max(averageColor.R, 0.001F),
+                    255F / Math.Max(averageColor.G, 0.001F),
+                    255F / Math.Max(averageColor.B, 0.001F));
 
                 for (int y = 0; y < height; y++)
                 for (int x = 0; x < width; x++)
