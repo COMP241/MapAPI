@@ -88,6 +88,7 @@ namespace MapAPI.Controllers
         public IActionResult GetByIdRange(int index1, int index2)
         {
             string[] mapFiles = Directory.GetFiles(Path.Combine(_workingDirectory, "Maps")).Select(Path.GetFileName).ToArray();
+            Array.Sort(mapFiles);
 
             if (index2 < index1 || index1 < 0 || index2 > mapFiles.Length - 1)
                 return new BadRequestResult();
