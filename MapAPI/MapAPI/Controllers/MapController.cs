@@ -93,23 +93,9 @@ namespace MapAPI.Controllers
 
             string[] selectMapFiles = mapFiles.Skip(index1).Take(index2 - index1 + 1).ToArray();
 
-            string finalJson = "[";
-            foreach (string selectMapFile in selectMapFiles)
-            {
-                finalJson += System.IO.File.ReadAllText(Path.Combine(_workingDirectory, "Maps", selectMapFile)) + ',';
-            }
-            finalJson = finalJson.Substring(0, finalJson.Length - 1);
-            finalJson += ']';
+            string finalJson = selectMapFiles.Aggregate("", (current, selectMapFile) => current + System.IO.File.ReadAllText(Path.Combine(_workingDirectory, "Maps", selectMapFile)));
 
-            return new ObjectResult(finalJson)
-            {
-                //Sets the media type to be json instead of string
-                ContentTypes = new MediaTypeCollection
-                {
-                    "application/json",
-                    "charset=utf-8"
-                }
-            };
+            return new ObjectResult(finalJson);
         }
 
         [HttpPost]
