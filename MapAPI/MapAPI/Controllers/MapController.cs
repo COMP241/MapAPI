@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
 using System.Net;
 using MapAPI.Helpers;
 using MapAPI.Models;
@@ -45,6 +46,16 @@ namespace MapAPI.Controllers
 #endif
         }
 
+        [HttpGet(Name = "GetMapIds")]
+        public IActionResult GetByIdRange()
+        {
+            string[] mapFiles = Directory.GetFiles(Path.Combine(_workingDirectory, "Maps"));
+
+            int[] ids = mapFiles.Select(Path.GetFileNameWithoutExtension).Select(fileId => Convert.ToInt32(fileId)).ToArray();
+
+            return new ObjectResult(ids);
+        }
+
         [HttpGet("{id}", Name = "GetMap")]
         public IActionResult GetById(int id)
         {
@@ -70,6 +81,35 @@ namespace MapAPI.Controllers
                 NotFoundResult o = new NotFoundResult();
                 return o;
             }
+        }
+
+        [HttpGet("{index1}-{index2}", Name = "GetMapRange")]
+        public IActionResult GetByIdRange(int index1, int index2)
+        {
+            string[] mapFiles = Directory.GetFiles(Path.Combine(_workingDirectory, "Maps")).Select(Path.GetFileName).ToArray();
+
+            if (index2 < index1 || index1 < 0 || index2 > mapFiles.Length - 1)
+                return new BadRequestResult();
+
+            string[] selectMapFiles = mapFiles.Skip(index1).Take(index2 - index1 + 1).ToArray();
+
+            string finalJson = "[";
+            foreach (string selectMapFile in selectMapFiles)
+            {
+                finalJson += System.IO.File.ReadAllText(Path.Combine(_workingDirectory, "Maps", selectMapFile)) + ',';
+            }
+            finalJson = finalJson.Substring(0, finalJson.Length - 1);
+            finalJson += ']';
+
+            return new ObjectResult(finalJson)
+            {
+                //Sets the media type to be json instead of string
+                ContentTypes = new MediaTypeCollection
+                {
+                    "application/json",
+                    "charset=utf-8"
+                }
+            };
         }
 
         [HttpPost]
