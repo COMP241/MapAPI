@@ -52,6 +52,7 @@ namespace MapAPI.Controllers
             string[] mapFiles = Directory.GetFiles(Path.Combine(_workingDirectory, "Maps"));
 
             int[] ids = mapFiles.Select(Path.GetFileNameWithoutExtension).Select(fileId => Convert.ToInt32(fileId)).ToArray();
+            Array.Sort(ids);
 
             return new ObjectResult(ids);
         }
