@@ -87,10 +87,11 @@ namespace MapAPI.Controllers
         [HttpGet("{index1}-{index2}", Name = "GetMapRange")]
         public IActionResult GetByIdRange(int index1, int index2)
         {
-            string[] mapFiles = Directory.GetFiles(Path.Combine(_workingDirectory, "Maps")).Select(Path.GetFileName).ToArray();
-            Array.Sort(mapFiles);
+            List<string> mapFiles = Directory.GetFiles(Path.Combine(_workingDirectory, "Maps")).Select(Path.GetFileName).ToList();
+            mapFiles.Sort((file1, file2) => Convert.ToInt32(Path.GetFileNameWithoutExtension(file1))
+                .CompareTo(Convert.ToInt32(Path.GetFileNameWithoutExtension(file2))));
 
-            if (index2 < index1 || index1 < 0 || index2 > mapFiles.Length - 1)
+            if (index2 < index1 || index1 < 0 || index2 > mapFiles.Count - 1)
                 return new BadRequestResult();
 
             string[] selectMapFiles = mapFiles.Skip(index1).Take(index2 - index1 + 1).ToArray();
