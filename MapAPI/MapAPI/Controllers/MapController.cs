@@ -94,7 +94,10 @@ namespace MapAPI.Controllers
 
             string[] selectMapFiles = mapFiles.Skip(index1).Take(index2 - index1 + 1).ToArray();
 
-            string finalJson = selectMapFiles.Aggregate("", (current, selectMapFile) => current + System.IO.File.ReadAllText(Path.Combine(_workingDirectory, "Maps", selectMapFile)));
+            string finalJson = string.Join("\n",
+                selectMapFiles.Select(
+                    selectMapFile => System.IO.File.ReadAllText(Path.Combine(_workingDirectory, "Maps",
+                        selectMapFile))));
 
             return new ObjectResult(finalJson);
         }
