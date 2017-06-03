@@ -51,7 +51,8 @@ namespace MapAPI.Controllers
         {
             string[] mapFiles = Directory.GetFiles(Path.Combine(_workingDirectory, "Maps"));
 
-            int[] ids = mapFiles.Select(Path.GetFileNameWithoutExtension).Select(fileId => Convert.ToInt32(fileId)).ToArray();
+            int[] ids = mapFiles.Select(Path.GetFileNameWithoutExtension).Select(fileId => Convert.ToInt32(fileId))
+                .ToArray();
             Array.Sort(ids);
 
             return new ObjectResult(ids);
@@ -87,7 +88,8 @@ namespace MapAPI.Controllers
         [HttpGet("{index1}-{index2}", Name = "GetMapRange")]
         public IActionResult GetByIdRange(int index1, int index2)
         {
-            List<string> mapFiles = Directory.GetFiles(Path.Combine(_workingDirectory, "Maps")).Select(Path.GetFileName).ToList();
+            List<string> mapFiles = Directory.GetFiles(Path.Combine(_workingDirectory, "Maps")).Select(Path.GetFileName)
+                .ToList();
             mapFiles.Sort((file1, file2) => Convert.ToInt32(Path.GetFileNameWithoutExtension(file1))
                 .CompareTo(Convert.ToInt32(Path.GetFileNameWithoutExtension(file2))));
 
@@ -96,10 +98,10 @@ namespace MapAPI.Controllers
 
             string[] selectMapFiles = mapFiles.Skip(index1).Take(index2 - index1 + 1).ToArray();
 
-            string finalJson = string.Join("\n",
-                selectMapFiles.Select(
-                    selectMapFile => System.IO.File.ReadAllText(Path.Combine(_workingDirectory, "Maps",
-                        selectMapFile))));
+            string finalJson = selectMapFiles.Aggregate("",
+                (current, selectMapFile) => current + System.IO.File
+                                                .ReadAllText(Path.Combine(_workingDirectory, "Maps", selectMapFile))
+                                                .Trim() + '\n');
 
             return new ObjectResult(finalJson);
         }
