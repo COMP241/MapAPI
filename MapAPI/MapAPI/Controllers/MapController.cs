@@ -5,6 +5,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using MapAPI.Helpers;
 using MapAPI.Models;
 using Microsoft.AspNetCore.Cors;
@@ -127,6 +128,12 @@ namespace MapAPI.Controllers
 
             //Gets the id for this upload, locked so only one thread can enter at a time
             int id = SetupId(ref workingDirectory);
+            //Cleans up Working folders that are leftover for some reason on every 20th pass
+            if (id % 20 == 0)
+            {
+                Thread cleanWorkingDirectories = new Thread(CleanWorkingDirectories);
+                cleanWorkingDirectories.Start();
+            }
             //Saves the file sent and get if transformation is needed
             bool transform = ProcessFormData(form, workingDirectory);
             //Tries to load file sent as image and will return an UnsupportedMediaTypeResult if file can't be loaded to a bitmap 
@@ -386,6 +393,16 @@ namespace MapAPI.Controllers
 #if DEBUG
             System.IO.File.WriteAllText(Path.Combine(_workingDirectory, "Debug", "9 Json.json"), json);
 #endif
+        }
+
+        private void CleanWorkingDirectories()
+        {
+            DirectoryInfo workingDirectoryInfo = new DirectoryInfo(_workingDirectory);
+            List<DirectoryInfo> workingFolders = workingDirectoryInfo.GetDirectories()
+                .Where(x => x.Name.Contains("Working")).ToList();
+            foreach (DirectoryInfo workingFolder in workingFolders)
+                if (workingFolder.CreationTime < DateTime.Now.AddSeconds(-120))
+                    workingFolder.Delete(true);
         }
     }
 }
