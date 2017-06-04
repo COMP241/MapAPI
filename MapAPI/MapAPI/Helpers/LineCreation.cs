@@ -297,15 +297,20 @@ namespace MapAPI.Helpers
                 List<List<PointF>> usedLines = new List<List<PointF>> {line};
                 List<List<PointF>> linesInLoop = new List<List<PointF>>();
                 //Tries to create a loop
-                List<PointF> result = CreateLoop(line, line.Last(), line[0], usedLines, ref linesInLoop);
+                List<PointF> loop = CreateLoop(line, line.Last(), line[0], usedLines, ref linesInLoop);
                 //Continues if no loop was found
-                if (result == null) continue;
+                if (loop == null) continue;
 
-                //If any of the points are within 5 units of all other points it doesn't make the loop as it is probably just a mistake
+                //If any of the points are within 5 units of all other points it doesn't make the loop as it is probably just a mistake unless the loop connects to nothing else
                 int minLoopSize = Config.MinLoopSize;
-                if (result.Any(point => result.Aggregate(true,
-                    (current, x) => current && Math.Abs(point.X - x.X) < minLoopSize &&
-                                    Math.Abs(point.Y - x.Y) < minLoopSize))) continue;
+                if (loop.Any(point => loop.Aggregate(true,
+                        (current, x) => current && Math.Abs(point.X - x.X) < minLoopSize &&
+                                        Math.Abs(point.Y - x.Y) < minLoopSize)) &&
+                    linesInLoop.Any(x => lines.Count(y => MatchingEnds(x, y)) >= 3))
+                {
+                    BreakLoop(linesInLoop);
+                    continue;
+                }
 
                 //Removes all but the last line
                 linesInLoop.GetRange(0, linesInLoop.Count - 1).ForEach(x => lines.Remove(x));
@@ -314,8 +319,8 @@ namespace MapAPI.Helpers
                 //Removes the last item
                 lines.Remove(linesInLoop.Last());
 
-                result.RemoveAt(0);
-                loops.Add(result);
+                loop.RemoveAt(0);
+                loops.Add(loop);
             }
 
             loops.Sort((loop1, loop2) => LengthOfLine(loop2).CompareTo(LengthOfLine(loop1)));
@@ -370,6 +375,79 @@ namespace MapAPI.Helpers
 
                 //Nothing was founds
                 return null;
+            }
+
+            //Breaks the loop be removing the longest segment that can be removed without disconnecting anything else
+            void BreakLoop(List<List<PointF>> linesInLoop)
+            {
+                int startOfLongestSegmentIndex = -1;
+                int endOfLongestSegmentIndex = -1;
+                double lengthOfLongestSegment = 0;
+
+                //Gets index of a line that has a connection outside the loop
+                int startIndex = linesInLoop.IndexOf(linesInLoop.First(x => lines.Count(y => MatchingEnds(x, y)) >= 3));
+
+                double[] lengths = linesInLoop.Select(LengthOfLine).ToArray();
+
+                int? startOfSegmentIndex = null;
+                int? endOfSegmentIndex = null;
+                double lengthOfSegment = 0;
+                int index = startIndex;
+                do
+                {
+
+                    //Adds to lengths
+                    lengthOfSegment += lengths[index];
+
+                    //If this is the start of a new segment
+                    if (startOfSegmentIndex == null)
+                    {
+                        //Assigns start
+                        startOfSegmentIndex = index;
+                        //Checks if it is also the end
+                        if (lines.Count(x => x[0] == linesInLoop[index][0] || x.Last() == linesInLoop[index][0]) >= 3 &&
+                            lines.Count(x => x[0] == linesInLoop[index].Last() || x.Last() == linesInLoop[index].Last()) >= 3)
+                            endOfSegmentIndex = startOfSegmentIndex;
+                    }
+                    else if (lines.Count(x => MatchingEnds(x, linesInLoop[index])) >= 3)
+                        endOfSegmentIndex = index;
+
+                    if (endOfSegmentIndex != null)
+                    {
+                        //If this is the new longest update values
+                        if (lengthOfSegment > lengthOfLongestSegment)
+                        {
+                            lengthOfLongestSegment = lengthOfSegment;
+                            startOfLongestSegmentIndex = (int) startOfSegmentIndex;
+                            endOfLongestSegmentIndex = (int) endOfSegmentIndex;
+                        }
+
+                        //Resets values
+                        startOfSegmentIndex = null;
+                        endOfSegmentIndex = null;
+                        lengthOfSegment = 0;
+                    }
+
+                    //Increments index
+                    index++;
+                    if (index == linesInLoop.Count)
+                        index = 0;
+                } while (index != startIndex);
+            
+                index = startOfLongestSegmentIndex;
+                while (true)
+                {
+                    //Removes lines
+                    lines.Remove(linesInLoop[index]);
+
+                    //Breaks if end has been reached
+                    if (index == endOfLongestSegmentIndex) break;
+
+                    //Increments index
+                    index++;
+                    if (index == linesInLoop.Count)
+                        index = 0;
+                }
             }
         }
 
@@ -604,6 +682,12 @@ namespace MapAPI.Helpers
                                     (line[i].Y - line[i + 1].Y) * (line[i].Y - line[i + 1].Y));
 
             return length;
+        }
+
+        private static bool MatchingEnds(List<PointF> line1, List<PointF> line2)
+        {
+            return line1[0] == line2[0] || line1[0] == line2.Last() || line1.Last() == line2[0] ||
+                   line1.Last() == line2.Last();
         }
     }
 }

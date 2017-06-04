@@ -13,7 +13,7 @@
     "angleLimit": 2.967,
     "initialCut": 10
   },
-  "minLoopSize": 6,
+  "minLoopSize": 15,
   "minLineLength": 20,
   "pixelCounts": {
     "initialImage": 3000000,
