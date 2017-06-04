@@ -459,17 +459,14 @@ namespace MapAPI.Helpers
             lines.Sort((line1, line2) => LengthOfLine(line2).CompareTo(LengthOfLine(line1)));
             List<double> lengths = lines.Select(LengthOfLine).ToList();
 
-            //Starting from the longest line, extends it
+            //Goes through each line from longest to shortest
             for (int i = 0; i < lines.Count; i++)
             {
-                bool progress = true;
-                //Keeps trying to extend start and end until it fails to do something
-                while (progress)
-                {
-                    progress = false;
-                    progress |= ExtendLine(true, i);
-                    progress |= ExtendLine(false, i);
-                }
+                lengths[i] = FindLongest(lines[i], out List<List<PointF>> partsOfLongestLine);
+                JoinLines(partsOfLongestLine);
+                lines[0].Reverse();
+                lengths[i] = FindLongest(lines[i], out partsOfLongestLine);
+                JoinLines(partsOfLongestLine);
             }
 
             //Deletes short lines
@@ -482,56 +479,61 @@ namespace MapAPI.Helpers
                 i--;
             }
 
-            lines.Sort((line1, line2) => LengthOfLine(line2).CompareTo(LengthOfLine(line1)));
-
-            //Tries to extend line
-            bool ExtendLine(bool fromStart, int index)
+            //Finds lines that make up the longest line
+            double FindLongest(List<PointF> line, out List<List<PointF>> partsOfLongestLine)
             {
-                List<PointF> line = lines[index];
-                //Whether it should used the start or end
-                PointF comparePoint = fromStart ? line[0] : line.Last();
+                PointF joinPoint = line.Last();
+                //Possible next points
+                List<List<PointF>> options = lines.Where(x => (joinPoint == x[0] || joinPoint == x.Last()) && x != line).ToList();
 
-                //Finds options
-                List<List<PointF>> options = lines
-                    .Where(x => (comparePoint == x[0] || comparePoint == x.Last()) && line != x).ToList();
-
-                //If no options, do nothing
-                if (options.Count == 0) return false;
-
-                List<PointF> joinedLine;
-                //If one option, use that
-                if (options.Count == 1)
+                //End of recursion, this line is at the end
+                if (options.Count == 0)
                 {
-                    joinedLine = line.JoinWith(options[0]);
-
-                    //Adds lengths
-                    lengths[lines.IndexOf(line)] += lengths[lines.IndexOf(options[0])];
-
-                    //Deletes stuff
-                    lengths.RemoveAt(lines.IndexOf(options[0]));
-                    lines.Remove(options[0]);
-                }
-                //If two options
-                else
-                {
-                    //Find longest line
-                    List<double> optionsLengths = options.Select(x => lengths[lines.IndexOf(x)]).ToList();
-                    List<PointF> longestOption = options[optionsLengths.IndexOf(optionsLengths.Max())];
-
-                    //Join them
-                    joinedLine = line.JoinWith(longestOption);
-
-                    //Adds lengths
-                    lengths[lines.IndexOf(line)] += lengths[lines.IndexOf(longestOption)];
-
-                    //Deletes stuff
-                    lengths.RemoveAt(lines.IndexOf(longestOption));
-                    lines.Remove(longestOption);
+                    partsOfLongestLine = new List<List<PointF>> {line};
+                    return lengths[lines.IndexOf(line)];
                 }
 
-                lines[index] = joinedLine;
+                List<List<PointF>>[] fullOptions = new List<List<PointF>>[options.Count];
+                double[] optionsLengths = new double[options.Count];
+                //Gets longest line of each option
+                for (int i = 0; i < options.Count; i++)
+                {
+                    List<PointF> option = options[i];
+                    //Flips option if it is the end that matches with the joining point
+                    if (option[0] != joinPoint)
+                        option.Reverse();
 
-                return true;
+                    optionsLengths[i] = FindLongest(option, out fullOptions[i]);
+                }
+
+                //Finds out which index had the longest line
+                int longestOptionIndex = Array.IndexOf(optionsLengths, optionsLengths.Max());
+
+                //Adds this line to the best option
+                partsOfLongestLine = fullOptions[longestOptionIndex];
+                partsOfLongestLine.Insert(0, line);
+
+                return optionsLengths[longestOptionIndex] + lengths[lines.IndexOf(line)];
+            }
+
+            //Joins list of lines together
+            void JoinLines(List<List<PointF>> linesToJoin)
+            {
+                //While there are lines to join
+                while (linesToJoin.Count > 1)
+                {
+                    //Deletes next line from lines and deletes it's length
+                    int lineToRemoveIndex = lines.IndexOf(linesToJoin[1]);
+                    lines.RemoveAt(lineToRemoveIndex);
+                    lengths.RemoveAt(lineToRemoveIndex);
+
+                    //Joins to next line
+                    linesToJoin[1].RemoveAt(0);
+                    linesToJoin[0].AddRange(linesToJoin[1]);
+
+                    //Removes joined line
+                    linesToJoin.RemoveAt(1);
+                }
             }
         }
 
