@@ -212,12 +212,8 @@ namespace MapAPI.Helpers
             Bitmap output = new Bitmap(bitmap.Width, bitmap.Height);
 
             for (int x = 0; x < bitmap.Width; x++)
-            {
-                for (int y = 0; y < bitmap.Height; y++)
-                {
-                    output.SetPixel(x, y, bitmap.GetPixel(x, y));
-                }
-            }
+            for (int y = 0; y < bitmap.Height; y++)
+                output.SetPixel(x, y, bitmap.GetPixel(x, y));
 
             return output;
         }

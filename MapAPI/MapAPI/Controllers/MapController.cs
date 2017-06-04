@@ -113,45 +113,27 @@ namespace MapAPI.Controllers
             string workingDirectory = Path.Combine(_workingDirectory, "Working ");
             // ReSharper disable once RedundantAssignment, needs to be there for non debug compile
             Bitmap initialImage = null;
-            Bitmap temp;
-            double ratio;
-            int height;
-            int width;
 
 #if !DEBUG
             try
             {
 #endif
+
+            #region Setup
+
+            //Checks there is a file
             if (form.Files.Count == 0)
                 return new BadRequestResult();
 
-            bool transform = true;
-            form.TryGetValue("transform", out StringValues value);
-            if (value[0] == "false")
-                transform = false;
-
-            int id;
-
             //Gets the id for this upload, locked so only one thread can enter at a time
-            lock (Lock)
-            {
-                id = _id;
-                workingDirectory += _id;
-                Directory.CreateDirectory(workingDirectory);
-                _id++;
-                System.IO.File.WriteAllText("NextId", _id.ToString());
-            }
-
-            //Saves the image and loads it as a bitmap
-            using (FileStream fileStream = new FileStream(Path.Combine(workingDirectory, form.Files[0].FileName),
-                FileMode.Create))
-            {
-                form.Files[0].CopyTo(fileStream);
-            }
-            //Will return an UnsupportedMediaTypeResult if file can't be loaded to a bitmap 
+            int id = SetupId(ref workingDirectory);
+            //Saves the file sent and get if transformation is needed
+            bool transform = ProcessFormData(form, workingDirectory);
+            //Tries to load file sent as image and will return an UnsupportedMediaTypeResult if file can't be loaded to a bitmap 
             try
             {
-                initialImage = new Bitmap(Path.Combine(workingDirectory, form.Files[0].FileName));
+                //Tries to load the image
+                initialImage = LoadImage(form, workingDirectory);
             }
             catch (Exception)
             {
@@ -159,45 +141,12 @@ namespace MapAPI.Controllers
                 return new UnsupportedMediaTypeResult();
             }
 
-#if DEBUG
-            //Saves the starting image
-            if (!Directory.Exists(Path.Combine(_workingDirectory, "Debug")))
-                Directory.CreateDirectory(Path.Combine(_workingDirectory, "Debug"));
-            initialImage.Save(Path.Combine(_workingDirectory, "Debug", "1 Initial.png"), ImageFormat.Png);
-#endif
+            #endregion
 
             #region Image Manipulation
 
-            Bitmap scaledImage;
-            if (initialImage.Width * initialImage.Height > Config.PixelCounts.InitialImage)
-            {
-                //Gets dimensions of scaled image
-                ratio = (double) initialImage.Width / initialImage.Height;
-                height = (int) Math.Sqrt(Config.PixelCounts.InitialImage / ratio);
-                width = Config.PixelCounts.InitialImage / height;
-
-                //Scales image in a poor way cause the proper way didn't work on Linux
-                scaledImage =
-                    initialImage.PerspectiveTransformImage(
-                        new[]
-                        {
-                            new Point(0, 0), new Point(initialImage.Width - 1, 0),
-                            new Point(initialImage.Width - 1, initialImage.Height - 1),
-                            new Point(0, initialImage.Height - 1)
-                        }, width, height);
-            }
-            else
-            {
-                scaledImage = initialImage.Copy();
-            }
-
-            //Saves image to be used by OpenCV code
-            scaledImage.Save(Path.Combine(workingDirectory, "scaled.png"), ImageFormat.Png);
-
-#if DEBUG
-            initialImage.Save(Path.Combine(_workingDirectory, "Debug", "2 Scaled.png"), ImageFormat.Png);
-#endif
-
+            //Scales image to be less than a certain number of pixels
+            Bitmap scaledImage = ScaleImage(workingDirectory, initialImage);
             Bitmap perspectiveImage;
             //Will only run this if transform flag has been checked
             if (transform)
@@ -213,7 +162,7 @@ namespace MapAPI.Controllers
                 }
 
 #if DEBUG
-                temp = Debug.DrawPoints(scaledImage, rectangles);
+                Bitmap temp = Debug.DrawPoints(scaledImage, rectangles);
                 temp.Save(Path.Combine(_workingDirectory, "Debug", "3 Rectangles.png"), ImageFormat.Png);
 #endif
 
@@ -231,17 +180,7 @@ namespace MapAPI.Controllers
                 temp.Save(Path.Combine(_workingDirectory, "Debug", "4 Paper.png"), ImageFormat.Png);
 #endif
 
-                //Finds width and height of transformation
-                ratio = 1.414;
-                height = (int) Math.Sqrt(Config.PixelCounts.TransformedImage / ratio);
-                width = Config.PixelCounts.TransformedImage / height;
-
-                //Transforms image
-                perspectiveImage = scaledImage.PerspectiveTransformImage(paper, width, height);
-
-#if DEBUG
-                perspectiveImage.Save(Path.Combine(_workingDirectory, "Debug", "5 Perspective.png"), ImageFormat.Png);
-#endif
+                perspectiveImage = TransformImage(scaledImage, paper);
             }
             else
             {
@@ -252,22 +191,10 @@ namespace MapAPI.Controllers
 
             #region Color Identification
 
-            //Checks each pixels threshold
-            bool[][] threshold = perspectiveImage.CreateThresholdArrayAndBalance();
-
-#if DEBUG
-            temp = Debug.BitmapFromBool(threshold);
-            temp.Save(Path.Combine(_workingDirectory, "Debug", "6 Threshold.png"), ImageFormat.Png);
-            perspectiveImage.Save(Path.Combine(_workingDirectory, "Debug", "7 Correction.png"), ImageFormat.Png);
-#endif
-
-            //Thins points
-            threshold.ZhangSuenThinning();
-
-#if DEBUG
-            temp = Debug.BitmapFromBool(threshold);
-            temp.Save(Path.Combine(_workingDirectory, "Debug", "8 Thinned.png"), ImageFormat.Png);
-#endif
+            //Gets threshold array for image
+            bool[][] threshold = CreateThresholds(perspectiveImage);
+            //Thins lines
+            ThinLines(threshold);
 
             #endregion
 
@@ -275,18 +202,18 @@ namespace MapAPI.Controllers
 
             //Finds lines
             List<List<PointF>> lineParts = threshold.CreateLineParts();
-
             //Reduces number of points in lines
             lineParts.ReduceLines();
-
             //Finds loops
             List<List<PointF>> loops = lineParts.CreateLoops();
-
             //Joins remaining lines
             lineParts.ConnectLines();
-
             //Create line objects
             List<Line> lines = LineCreation.CreateLineObjects(lineParts, loops, perspectiveImage);
+
+            #endregion
+
+            #region Map Creation
 
             //Creates a map
             Map map = new Map
@@ -299,14 +226,7 @@ namespace MapAPI.Controllers
             //Converts map to json
             string json = JsonConvert.SerializeObject(map).Replace("\"IsEmpty\":false,", "");
 
-            //Saves it
-            if (!Directory.Exists(Path.Combine(_workingDirectory, "Maps")))
-                Directory.CreateDirectory(Path.Combine(_workingDirectory, "Maps"));
-            System.IO.File.WriteAllText(Path.Combine(_workingDirectory, "Maps", $"{id}.json"), json);
-
-#if DEBUG
-            System.IO.File.WriteAllText(Path.Combine(_workingDirectory, "Debug", "9 Json.json"), json);
-#endif
+            SaveMap(id, json);
 
             #endregion
 
@@ -332,6 +252,139 @@ namespace MapAPI.Controllers
                     Directory.Delete(workingDirectory ,true);
                 return new StatusCodeResult((int) HttpStatusCode.InternalServerError);
             }
+#endif
+        }
+
+        private static int SetupId(ref string workingDirectory)
+        {
+            int id;
+            lock (Lock)
+            {
+                id = _id;
+                workingDirectory += _id;
+                Directory.CreateDirectory(workingDirectory);
+                _id++;
+                System.IO.File.WriteAllText("NextId", _id.ToString());
+            }
+
+            return id;
+        }
+
+        private static bool ProcessFormData(IFormCollection form, string workingDirectory)
+        {
+            //Checks if image should be transformed
+            bool transform = true;
+            if (form.TryGetValue("transform", out StringValues value))
+                if (value[0] == "false")
+                    transform = false;
+
+            //Saves the image and loads it as a bitmap
+            using (FileStream fileStream = new FileStream(Path.Combine(workingDirectory, form.Files[0].FileName),
+                FileMode.Create))
+            {
+                form.Files[0].CopyTo(fileStream);
+            }
+
+            return transform;
+        }
+
+        private Bitmap LoadImage(IFormCollection form, string workingDirectory)
+        {
+            Bitmap initialImage = new Bitmap(Path.Combine(workingDirectory, form.Files[0].FileName));
+
+#if DEBUG
+            //Saves the starting image
+            if (!Directory.Exists(Path.Combine(_workingDirectory, "Debug")))
+                Directory.CreateDirectory(Path.Combine(_workingDirectory, "Debug"));
+            initialImage.Save(Path.Combine(_workingDirectory, "Debug", "1 Initial.png"), ImageFormat.Png);
+#endif
+            return initialImage;
+        }
+
+        private Bitmap ScaleImage(string workingDirectory, Bitmap initialImage)
+        {
+            Bitmap scaledImage;
+            if (initialImage.Width * initialImage.Height > Config.PixelCounts.InitialImage)
+            {
+                //Gets dimensions of scaled image
+                double ratio = (double) initialImage.Width / initialImage.Height;
+                int height = (int) Math.Sqrt(Config.PixelCounts.InitialImage / ratio);
+                int width = Config.PixelCounts.InitialImage / height;
+
+                //Scales image in a poor way cause the proper way didn't work on Linux
+                scaledImage =
+                    initialImage.PerspectiveTransformImage(
+                        new[]
+                        {
+                            new Point(0, 0), new Point(initialImage.Width - 1, 0),
+                            new Point(initialImage.Width - 1, initialImage.Height - 1),
+                            new Point(0, initialImage.Height - 1)
+                        }, width, height);
+            }
+            else
+            {
+                scaledImage = initialImage.Copy();
+            }
+
+            //Saves image to be used by OpenCV code
+            scaledImage.Save(Path.Combine(workingDirectory, "scaled.png"), ImageFormat.Png);
+
+#if DEBUG
+            initialImage.Save(Path.Combine(_workingDirectory, "Debug", "2 Scaled.png"), ImageFormat.Png);
+#endif
+            return scaledImage;
+        }
+
+        private Bitmap TransformImage(Bitmap scaledImage, Point[] paper)
+        {
+            Bitmap perspectiveImage;
+            //Finds width and height of transformation
+            double ratio = 1.414;
+            int height = (int) Math.Sqrt(Config.PixelCounts.TransformedImage / ratio);
+            int width = Config.PixelCounts.TransformedImage / height;
+
+            //Transforms image
+            perspectiveImage = scaledImage.PerspectiveTransformImage(paper, width, height);
+
+#if DEBUG
+            perspectiveImage.Save(Path.Combine(_workingDirectory, "Debug", "5 Perspective.png"), ImageFormat.Png);
+#endif
+            return perspectiveImage;
+        }
+
+        private bool[][] CreateThresholds(Bitmap perspectiveImage)
+        {
+            //Checks each pixels threshold
+            bool[][] threshold = perspectiveImage.CreateThresholdArrayAndBalance();
+
+#if DEBUG
+            Bitmap temp = Debug.BitmapFromBool(threshold);
+            temp.Save(Path.Combine(_workingDirectory, "Debug", "6 Threshold.png"), ImageFormat.Png);
+            perspectiveImage.Save(Path.Combine(_workingDirectory, "Debug", "7 Correction.png"), ImageFormat.Png);
+#endif
+            return threshold;
+        }
+
+        private void ThinLines(bool[][] threshold)
+        {
+            //Thins points
+            threshold.ZhangSuenThinning();
+
+#if DEBUG
+            Bitmap temp = Debug.BitmapFromBool(threshold);
+            temp.Save(Path.Combine(_workingDirectory, "Debug", "8 Thinned.png"), ImageFormat.Png);
+#endif
+        }
+
+        private void SaveMap(int id, string json)
+        {
+            //Saves it
+            if (!Directory.Exists(Path.Combine(_workingDirectory, "Maps")))
+                Directory.CreateDirectory(Path.Combine(_workingDirectory, "Maps"));
+            System.IO.File.WriteAllText(Path.Combine(_workingDirectory, "Maps", $"{id}.json"), json);
+
+#if DEBUG
+            System.IO.File.WriteAllText(Path.Combine(_workingDirectory, "Debug", "9 Json.json"), json);
 #endif
         }
     }
