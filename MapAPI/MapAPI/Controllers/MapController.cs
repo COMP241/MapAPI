@@ -227,7 +227,7 @@ namespace MapAPI.Controllers
             {
                 Id = id,
                 Lines = lines,
-                Ratio = 1.414
+                Ratio = (double) perspectiveImage.Width / perspectiveImage.Height
             };
 
             //Converts map to json
