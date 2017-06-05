@@ -395,7 +395,6 @@ namespace MapAPI.Helpers
                 int index = startIndex;
                 do
                 {
-
                     //Adds to lengths
                     lengthOfSegment += lengths[index];
 
@@ -406,11 +405,14 @@ namespace MapAPI.Helpers
                         startOfSegmentIndex = index;
                         //Checks if it is also the end
                         if (lines.Count(x => x[0] == linesInLoop[index][0] || x.Last() == linesInLoop[index][0]) >= 3 &&
-                            lines.Count(x => x[0] == linesInLoop[index].Last() || x.Last() == linesInLoop[index].Last()) >= 3)
+                            lines.Count(x => x[0] == linesInLoop[index].Last() ||
+                                             x.Last() == linesInLoop[index].Last()) >= 3)
                             endOfSegmentIndex = startOfSegmentIndex;
                     }
                     else if (lines.Count(x => MatchingEnds(x, linesInLoop[index])) >= 3)
+                    {
                         endOfSegmentIndex = index;
+                    }
 
                     if (endOfSegmentIndex != null)
                     {
@@ -433,7 +435,7 @@ namespace MapAPI.Helpers
                     if (index == linesInLoop.Count)
                         index = 0;
                 } while (index != startIndex);
-            
+
                 index = startOfLongestSegmentIndex;
                 while (true)
                 {
@@ -484,7 +486,8 @@ namespace MapAPI.Helpers
             {
                 PointF joinPoint = line.Last();
                 //Possible next points
-                List<List<PointF>> options = lines.Where(x => (joinPoint == x[0] || joinPoint == x.Last()) && x != line).ToList();
+                List<List<PointF>> options = lines.Where(x => (joinPoint == x[0] || joinPoint == x.Last()) && x != line)
+                    .ToList();
 
                 //End of recursion, this line is at the end
                 if (options.Count == 0)
@@ -676,6 +679,11 @@ namespace MapAPI.Helpers
             return line1;
         }
 
+        /// <summary>
+        ///     Calculates the total distance between all of the points in a List of Points.
+        /// </summary>
+        /// <param name="line">The List of Points to calculate the distance with.</param>
+        /// <returns>The sum of the distance between the points.</returns>
         private static double LengthOfLine(List<PointF> line)
         {
             double length = 0;
@@ -686,6 +694,12 @@ namespace MapAPI.Helpers
             return length;
         }
 
+        /// <summary>
+        ///     Checks if two Lists of Points have at least one set of similar ends.
+        /// </summary>
+        /// <param name="line1">One line to use in the comparison.</param>
+        /// <param name="line2">One line to use in the comparison.</param>
+        /// <returns>True if a set of similar ends was found.</returns>
         private static bool MatchingEnds(List<PointF> line1, List<PointF> line2)
         {
             return line1[0] == line2[0] || line1[0] == line2.Last() || line1.Last() == line2[0] ||

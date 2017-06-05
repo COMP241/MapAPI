@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -248,6 +249,58 @@ namespace MapAPI.Helpers
                     relativeAngle = -2 - relativeAngle;
 
                 return relativeAngle;
+            }
+        }
+
+        /// <summary>
+        ///     Calculates the ratio of width over height of a rectangle at an angle based on its 4 corners.
+        ///     Based on the maths by HugoRune, https://stackoverflow.com/a/1222855/5408286
+        ///     under the CC BY-SA license, https://creativecommons.org/licenses/by-sa/4.0/.
+        /// </summary>
+        /// <param name="corners">The four corners that make up the rectangle.</param>
+        /// <param name="width">The width of the image the corners comes from.</param>
+        /// <param name="height">The height of the image the corners come from.</param>
+        /// <returns>The ratio the width of the rectangle over its height.</returns>
+        public static double CalculateRatio(Point[] corners, int width, int height)
+        {
+            float centerX = width / 2F;
+            float centerY = height / 2F;
+
+            //Translates points so center of image is 0,0
+            List<PointF> cf = corners.Select(corner => new PointF(corner.X - centerX, corner.Y - centerY)).ToList();
+
+            //Some values
+            double k2 = ((cf[0].Y - cf[2].Y) * cf[3].X - (cf[0].X - cf[2].X) * cf[3].Y + cf[0].X * cf[2].Y -
+                         cf[0].Y * cf[2].X) / ((cf[1].Y - cf[2].Y) * cf[3].X - (cf[1].X - cf[2].X) * cf[3].Y +
+                                               cf[1].X * cf[2].Y - cf[1].Y * cf[2].X);
+
+            double k3 = ((cf[0].Y - cf[2].Y) * cf[1].X - (cf[0].X - cf[2].X) * cf[1].Y + cf[0].X * cf[2].Y -
+                         cf[0].Y * cf[2].X) / ((cf[3].Y - cf[2].Y) * cf[1].X - (cf[3].X - cf[2].X) * cf[1].Y +
+                                               cf[3].X * cf[2].Y - cf[3].Y * cf[2].X);
+
+            if (Math.Abs(k2 - 1) > 0.001 && Math.Abs(k3 - 1) > 0.001)
+            {
+                //Focal length of camera squared
+                double focalSquared = -((k3 * cf[3].Y - cf[0].Y) * (k2 * cf[1].Y - cf[0].Y) +
+                                        (k3 * cf[3].X - cf[0].X) * (k2 * cf[1].X - cf[0].X)) / ((k3 - 1) * (k2 - 1));
+
+                //The width/height ratio of the original rectangle
+                return Math.Sqrt(
+                    (Square(k2 - 1) + Square(k2 * cf[1].Y - cf[0].Y) / focalSquared +
+                     Square(k2 * cf[1].X - cf[0].X) / focalSquared) /
+                    (Square(k3 - 1) + Square(k3 * cf[3].Y - cf[0].Y) / focalSquared +
+                     Square(k3 * cf[3].X - cf[0].X) / focalSquared));
+            }
+
+
+            //The width/height ratio of the original rectangle
+            return Math.Sqrt((Square(cf[1].Y - cf[0].Y) + Square(cf[1].X - cf[0].X)) /
+                             (Square(cf[3].Y - cf[0].Y) + Square(cf[3].X - cf[0].X)));
+
+
+            double Square(double d)
+            {
+                return d * d;
             }
         }
     }

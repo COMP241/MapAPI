@@ -345,14 +345,13 @@ namespace MapAPI.Controllers
 
         private Bitmap TransformImage(Bitmap scaledImage, Point[] paper)
         {
-            Bitmap perspectiveImage;
             //Finds width and height of transformation
-            double ratio = 1.414;
+            double ratio = ImageManipulation.CalculateRatio(paper, scaledImage.Width, scaledImage.Height);
             int height = (int) Math.Sqrt(Config.PixelCounts.TransformedImage / ratio);
             int width = Config.PixelCounts.TransformedImage / height;
 
             //Transforms image
-            perspectiveImage = scaledImage.PerspectiveTransformImage(paper, width, height);
+            Bitmap perspectiveImage = scaledImage.PerspectiveTransformImage(paper, width, height);
 
 #if DEBUG
             perspectiveImage.Save(Path.Combine(_workingDirectory, "Debug", "5 Perspective.png"), ImageFormat.Png);
