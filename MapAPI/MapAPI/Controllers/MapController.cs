@@ -153,7 +153,7 @@ namespace MapAPI.Controllers
             #region Image Manipulation
 
             //Scales image to be less than a certain number of pixels
-            Bitmap scaledImage = ScaleImage(workingDirectory, initialImage);
+            Bitmap scaledImage = ScaleImage(workingDirectory, initialImage, transform);
             Bitmap perspectiveImage;
             //Will only run this if transform flag has been checked
             if (transform)
@@ -191,7 +191,7 @@ namespace MapAPI.Controllers
             }
             else
             {
-                perspectiveImage = scaledImage.Copy();
+                perspectiveImage = scaledImage;
             }
 
             #endregion
@@ -308,15 +308,16 @@ namespace MapAPI.Controllers
             return initialImage;
         }
 
-        private Bitmap ScaleImage(string workingDirectory, Bitmap initialImage)
+        private Bitmap ScaleImage(string workingDirectory, Bitmap initialImage, bool transform)
         {
             Bitmap scaledImage;
-            if (initialImage.Width * initialImage.Height > Config.PixelCounts.InitialImage)
+            int pixelLimit = transform ? Config.PixelCounts.InitialImage : Config.PixelCounts.TransformedImage;
+            if (initialImage.Width * initialImage.Height > pixelLimit)
             {
                 //Gets dimensions of scaled image
                 double ratio = (double) initialImage.Width / initialImage.Height;
-                int height = (int) Math.Sqrt(Config.PixelCounts.InitialImage / ratio);
-                int width = Config.PixelCounts.InitialImage / height;
+                int height = (int) Math.Sqrt(pixelLimit / ratio);
+                int width = pixelLimit / height;
 
                 //Scales image in a poor way cause the proper way didn't work on Linux
                 scaledImage =
