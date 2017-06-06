@@ -116,7 +116,7 @@ namespace MapAPI.Helpers
             if (points.Length != 4)
                 throw new ArgumentException("The Array of Points points does not contain exactly 4 Points.",
                     nameof(points));
-            if (points.All(point => point.X >= 0 && point.X < image.Height && point.Y >= 0 && point.Y < image.Width))
+            if (!points.All(point => point.X >= 0 && point.X < image.Width && point.Y >= 0 && point.Y < image.Height))
                 throw new ArgumentException(
                     "At least one Point element in the Array of Points points is not within the bounds of the current image.",
                     nameof(points));
