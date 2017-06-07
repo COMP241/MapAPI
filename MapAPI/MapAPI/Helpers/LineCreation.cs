@@ -597,38 +597,21 @@ namespace MapAPI.Helpers
                 hueSamples.Sort();
                 float medianHue = hueSamples[hueSamples.Count / 2];
 
-                int hueRegion = (int) (medianHue / 30);
-
-                //Picks the hue based on the region
-                switch (hueRegion)
-                {
-                    case 0:
-                        return Line.Colors.Red;
-                    case 1:
-                        return Line.Colors.Yellow;
-                    case 2:
-                        return Line.Colors.Yellow;
-                    case 3:
-                        return Line.Colors.Green;
-                    case 4:
-                        return Line.Colors.Green;
-                    case 5:
-                        return Line.Colors.Cyan;
-                    case 6:
-                        return Line.Colors.Cyan;
-                    case 7:
-                        return Line.Colors.Blue;
-                    case 8:
-                        return Line.Colors.Blue;
-                    case 9:
-                        return Line.Colors.Magenta;
-                    case 10:
-                        return Line.Colors.Magenta;
-                    case 11:
-                        return Line.Colors.Red;
-                    default:
-                        return Line.Colors.Red;
-                }
+                //Picks the color based on hue
+                if (medianHue < 30)
+                    return Line.Colors.Red;
+                if (medianHue < 90)
+                    return Line.Colors.Yellow;
+                if (medianHue < 165)
+                    return Line.Colors.Green;
+                if (medianHue < 210)
+                    return Line.Colors.Cyan;
+                if (medianHue < 270)
+                    return Line.Colors.Blue;
+                if (medianHue < 330)
+                    return Line.Colors.Magenta;
+                else
+                    return Line.Colors.Red;
             }
         }
 
