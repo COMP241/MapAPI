@@ -106,7 +106,7 @@ namespace UnitTests
             };
 
             //Saves it
-            File.WriteAllText("Images/Out/Line/3.json",
+            File.WriteAllText("Images/Out/Line/_json.json",
                 JsonConvert.SerializeObject(map).Replace("\"IsEmpty\":false,", ""));
         }
 
