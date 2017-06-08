@@ -34,6 +34,10 @@ namespace UnitTests
 
             //Creates part of lines
             List<List<PointF>> lineParts = boolArray.CreateLineParts();
+
+            Bitmap bitall = new Bitmap(bitmap.Width, bitmap.Height);
+            bitall.SetPixel(0, 0, Color.Black);
+            bitall.SetPixel(bitall.Width - 1, bitall.Height - 1, Color.Black);
             for (int index = 0; index < lineParts.Count; index++)
             {
                 List<PointF> pointFs = lineParts[index];
@@ -41,16 +45,24 @@ namespace UnitTests
 
                 Color randomColor = Color.FromArgb(rnd.Next(50, 200), rnd.Next(50, 200), rnd.Next(50, 200));
                 bitout.SetPixel(0, 0, Color.Black);
-                bitout.SetPixel(1413, 999, Color.Black);
+                bitout.SetPixel(bitout.Width - 1, bitout.Height - 1, Color.Black);
                 foreach (PointF pointF in pointFs)
+                {
                     bitout.SetPixel((int) pointF.X, (int) pointF.Y, randomColor);
+                    bitall.SetPixel((int) pointF.X, (int) pointF.Y, randomColor);
+                }
                 if (!Directory.Exists("Images/Out/Line"))
                     Directory.CreateDirectory("Images/Out/Line");
                 bitout.Save($"Images/Out/Line/{index}.png", ImageFormat.Png);
             }
+            bitall.Save("Images/Out/Line/_1.png");
 
             //Cuts out points in the lines
             lineParts.ReduceLines();
+
+            bitall = new Bitmap(bitmap.Width, bitmap.Height);
+            bitall.SetPixel(0, 0, Color.Black);
+            bitall.SetPixel(bitall.Width - 1, bitall.Height - 1, Color.Black);
             for (int index = 0; index < lineParts.Count; index++)
             {
                 List<PointF> pointFs = lineParts[index];
@@ -58,14 +70,22 @@ namespace UnitTests
 
                 Color randomColor = Color.FromArgb(rnd.Next(50, 200), rnd.Next(50, 200), rnd.Next(50, 200));
                 bitout.SetPixel(0, 0, Color.Black);
-                bitout.SetPixel(1413, 999, Color.Black);
+                bitout.SetPixel(bitout.Width - 1, bitout.Height - 1, Color.Black);
                 foreach (PointF pointF in pointFs)
+                {
                     bitout.SetPixel((int) pointF.X, (int) pointF.Y, randomColor);
+                    bitall.SetPixel((int) pointF.X, (int) pointF.Y, randomColor);
+                }
                 bitout.Save($"Images/Out/Line/{index} - reduced.png", ImageFormat.Png);
             }
+            bitall.Save("Images/Out/Line/_2.png");
 
             //Finds loops
             List<List<PointF>> loops = lineParts.CreateLoops();
+
+            bitall = new Bitmap(bitmap.Width, bitmap.Height);
+            bitall.SetPixel(0, 0, Color.Black);
+            bitall.SetPixel(bitall.Width - 1, bitall.Height - 1, Color.Black);
             for (int index = 0; index < loops.Count; index++)
             {
                 List<PointF> pointFs = loops[index];
@@ -73,14 +93,22 @@ namespace UnitTests
 
                 Color randomColor = Color.FromArgb(rnd.Next(50, 200), rnd.Next(50, 200), rnd.Next(50, 200));
                 bitout.SetPixel(0, 0, Color.Black);
-                bitout.SetPixel(1413, 999, Color.Black);
+                bitout.SetPixel(bitout.Width - 1, bitout.Height - 1, Color.Black);
                 foreach (PointF pointF in pointFs)
+                {
                     bitout.SetPixel((int) pointF.X, (int) pointF.Y, randomColor);
+                    bitall.SetPixel((int) pointF.X, (int) pointF.Y, randomColor);
+                }
                 bitout.Save($"Images/Out/Line/loop - {index}.png", ImageFormat.Png);
             }
+            bitall.Save("Images/Out/Line/_3.png");
 
             //Connects remaining lines
             lineParts.ConnectLines();
+
+            bitall = new Bitmap(bitmap.Width, bitmap.Height);
+            bitall.SetPixel(0, 0, Color.Black);
+            bitall.SetPixel(bitall.Width - 1, bitall.Height - 1, Color.Black);
             for (int index = 0; index < lineParts.Count; index++)
             {
                 List<PointF> pointFs = lineParts[index];
@@ -88,11 +116,15 @@ namespace UnitTests
 
                 Color randomColor = Color.FromArgb(rnd.Next(50, 200), rnd.Next(50, 200), rnd.Next(50, 200));
                 bitout.SetPixel(0, 0, Color.Black);
-                bitout.SetPixel(1413, 999, Color.Black);
+                bitout.SetPixel(bitout.Width - 1, bitout.Height - 1, Color.Black);
                 foreach (PointF pointF in pointFs)
+                {
                     bitout.SetPixel((int) pointF.X, (int) pointF.Y, randomColor);
+                    bitall.SetPixel((int) pointF.X, (int) pointF.Y, randomColor);
+                }
                 bitout.Save($"Images/Out/Line/line - {index}.png", ImageFormat.Png);
             }
+            bitall.Save("Images/Out/Line/_4.png");
 
             //Creates line objects
             List<Line> lines = LineCreation.CreateLineObjects(lineParts, loops, bitmap);
