@@ -1,5 +1,5 @@
 ﻿{
-  "rectangleShift":  0.013,
+  "rectangleShift": 0.013,
   "whiteDefinition": {
     "saturation": 0.3,
     "brightness": 0.1
@@ -14,6 +14,7 @@
     "initialCut": 10
   },
   "minLoopSize": 15,
+  "minLoopSizeLower": 5,
   "minLineLength": 20,
   "pixelCounts": {
     "initialImage": 3000000,

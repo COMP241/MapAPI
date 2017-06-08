@@ -301,14 +301,23 @@ namespace MapAPI.Helpers
                 //Continues if no loop was found
                 if (loop == null) continue;
 
-                //If any of the points are within 5 units of all other points it doesn't make the loop as it is probably just a mistake unless the loop connects to nothing else
+                //If any of the points are within some number of units of all other points it doesn't make the loop as it is probably just a mistake unless the loop connects to nothing else
                 int minLoopSize = Config.MinLoopSize;
+                int loverMinSize = Config.MinLoopSizeLower;
                 if (loop.Any(point => loop.Aggregate(true,
                         (current, x) => current && Math.Abs(point.X - x.X) < minLoopSize &&
                                         Math.Abs(point.Y - x.Y) < minLoopSize)) &&
                     linesInLoop.Any(x => lines.Count(y => MatchingEnds(x, y)) >= 3))
                 {
                     BreakLoop(linesInLoop);
+                    continue;
+                }
+                //If the lines is alone but very small delete the whole thing
+                if(loop.Any(point => loop.Aggregate(true,
+                    (current, x) => current && Math.Abs(point.X - x.X) < loverMinSize &&
+                                    Math.Abs(point.Y - x.Y) < loverMinSize)))
+                {
+                    linesInLoop.ForEach(x => lines.Remove(x));
                     continue;
                 }
 
@@ -335,7 +344,7 @@ namespace MapAPI.Helpers
                 if (joiningPoint == loopGoal)
                 {
                     linesInLoop.Add(currentSegment);
-                    return currentSegment;
+                    return currentSegment.ToList();
                 }
 
                 //Finds all lines that can join at the joining point
